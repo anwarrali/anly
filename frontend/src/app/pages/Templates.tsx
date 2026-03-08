@@ -275,7 +275,7 @@ export default function Templates() {
                         Featured
                       </span>
                     )}
-                    {tpl.isNew && (
+                    {tpl.isNewItem && (
                       <span className="px-3 py-1 bg-olive-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl">
                         New Arrival
                       </span>
