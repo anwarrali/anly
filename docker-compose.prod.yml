@@ -19,7 +19,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/anly_db
+      - MONGO_URI=${MONGO_ATLAS_URI}
       - NODE_ENV=production
 
   frontend:
@@ -34,6 +34,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+    args:
+      - VITE_API_URL=https://anly_backend.onrender.com/api
 
 volumes:
   mongodb_prod_data:
