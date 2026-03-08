@@ -19,7 +19,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      - MONGO_URI=${MONGO_ATLAS_URI}
+      - MONGO_URI=${MONGO_URI}
       - NODE_ENV=production
 
   frontend:
