@@ -1,0 +1,176 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: hsl(90, 10%, 98%);
+  --foreground: hsl(90, 15%, 12%);
+  --card: hsl(90, 10%, 99%);
+  --card-foreground: hsl(90, 15%, 12%);
+  --popover: hsl(90, 10%, 100%);
+  --popover-foreground: hsl(90, 15%, 12%);
+  --primary: hsl(90, 25%, 32%);
+  --primary-foreground: hsl(90, 10%, 98%);
+  --secondary: hsl(90, 15%, 88%);
+  --secondary-foreground: hsl(90, 25%, 32%);
+  --muted: hsl(90, 10%, 94%);
+  --muted-foreground: hsl(90, 10%, 45%);
+  --accent: hsl(95, 20%, 92%);
+  --accent-foreground: hsl(90, 25%, 32%);
+  --destructive: hsl(0, 60%, 50%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(90, 10%, 88%);
+  --input: hsl(90, 10%, 95%);
+  --input-background: hsl(90, 10%, 97%);
+  --switch-background: hsl(90, 10%, 75%);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: hsl(90, 25%, 32%);
+  --radius: 0.75rem;
+
+  /* Olive Shades */
+  --olive-50: hsl(90, 30%, 96%);
+  --olive-100: hsl(90, 25%, 92%);
+  --olive-200: hsl(90, 20%, 82%);
+  --olive-300: hsl(90, 18%, 70%);
+  --olive-400: hsl(90, 15%, 55%);
+  --olive-500: hsl(90, 25%, 32%);
+  --olive-600: hsl(90, 28%, 28%);
+  --olive-700: hsl(90, 30%, 22%);
+  --olive-800: hsl(90, 35%, 18%);
+  --olive-900: hsl(90, 40%, 12%);
+}
+
+.dark {
+  --background: hsl(90, 10%, 8%);
+  --foreground: hsl(90, 10%, 95%);
+  --card: hsl(90, 10%, 10%);
+  --card-foreground: hsl(90, 10%, 95%);
+  --popover: hsl(90, 10%, 8%);
+  --popover-foreground: hsl(90, 10%, 95%);
+  --primary: hsl(90, 20%, 75%);
+  --primary-foreground: hsl(90, 10%, 8%);
+  --secondary: hsl(90, 10%, 18%);
+  --secondary-foreground: hsl(90, 10%, 90%);
+  --muted: hsl(90, 10%, 15%);
+  --muted-foreground: hsl(90, 10%, 65%);
+  --accent: hsl(90, 15%, 18%);
+  --accent-foreground: hsl(90, 10%, 95%);
+  --destructive: hsl(0, 50%, 40%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(90, 10%, 18%);
+  --input: hsl(90, 10%, 15%);
+  --ring: hsl(90, 20%, 75%);
+
+  --olive-50: hsl(90, 10%, 15%);
+  --olive-100: hsl(90, 10%, 22%);
+  --olive-200: hsl(90, 10%, 35%);
+  --olive-300: hsl(90, 10%, 50%);
+  --olive-400: hsl(90, 15%, 65%);
+  --olive-500: hsl(90, 20%, 75%);
+  --olive-600: hsl(90, 20%, 82%);
+  --olive-700: hsl(90, 20%, 88%);
+  --olive-800: hsl(90, 20%, 92%);
+  --olive-900: hsl(90, 20%, 96%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}

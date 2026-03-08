@@ -1,0 +1,48 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: anly_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=anly_db
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    container_name: anly_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    env_file:
+      - ./backend/.env
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/anly_db
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: anly_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - ./frontend/.env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  mongodb_data:
