@@ -28,7 +28,7 @@ const PORT = process.env.PORT || 5000;
 // ============================================================
 
 const corsOptions = {
-  origin: ["https://anly.pages.dev", "https://anly.onrender.com"],
+  origin: ["https://anlycode.pages.dev", "http://localhost:5173"],
   credentials: true,
   optionsSuccessStatus: 200,
 };
