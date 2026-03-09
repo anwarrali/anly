@@ -27,18 +27,16 @@ const PORT = process.env.PORT || 5000;
 //  Global Middleware
 // ============================================================
 
+const corsOptions = {
+  origin: ["https://anly.pages.dev", "https://anly.onrender.com"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 // Security headers
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
-  }),
-);
-
-// CORS — allow your frontend origin
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
   }),
 );
 
@@ -62,6 +60,7 @@ const limiter = rateLimit({
 });
 app.use("/api", limiter);
 
+app.use(cors(corsOptions));
 // ============================================================
 //  API Routes
 // ============================================================

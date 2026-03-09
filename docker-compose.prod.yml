@@ -27,7 +27,7 @@ services:
       context: ./frontend
       target: production
       args:
-        - VITE_API_URL=http://localhost:5000/api
+        - VITE_API_URL=http://localhost:5000
     container_name: anly_frontend_prod
     restart: always
     ports:
@@ -35,7 +35,7 @@ services:
     depends_on:
       - backend
     args:
-      - VITE_API_URL=https://anly_backend.onrender.com/api
+      - VITE_API_URL=https://anly.onrender.com/api
 
 volumes:
   mongodb_prod_data:
