@@ -117,20 +117,20 @@ export default function Order() {
     {
       id: "basic",
       label: t.pricing.plans[0].name,
-      price: "$50/yr",
+      price: lang === "ar" ? "يعتمد على المتطلبات" : "Custom Quote",
       edits: "5",
     },
     {
       id: "standard",
       label: t.pricing.plans[1].name,
-      price: "$80/yr",
+      price: lang === "ar" ? "يعتمد على المتطلبات" : "Custom Quote",
       edits: "10",
       popular: true,
     },
     {
       id: "premium",
       label: t.pricing.plans[2].name,
-      price: "$120/yr",
+      price: lang === "ar" ? "يعتمد على المتطلبات" : "Custom Quote",
       edits: "Unlimited",
     },
   ];
@@ -161,10 +161,33 @@ export default function Order() {
       const res = await api.post("/orders", payload);
       const order = res.data.data;
 
-      const isPaid =
-        (form.serviceType === "template_purchase" ||
-          form.serviceType.endsWith("_setup")) &&
-        !form.serviceType.startsWith("custom_");
+      const isPaid = form.serviceType === "template_purchase";
+
+      if (!isPaid) {
+        // Use free FormSubmit to notify admin instantly without mail server configs
+        // Removed await to prevent '100 year loading' if the third-party service is slow
+        fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            _subject: `New Request: ${form.serviceType} from ${form.company || form.name}`,
+            serviceType: form.serviceType,
+            name: form.name,
+            email: form.email,
+            phone: form.phone,
+            company: form.company,
+            website: form.website,
+            budget: form.budget,
+            timeline: form.timeline,
+            description: form.description,
+            requirements: form.requirements,
+            _captcha: "false",
+          }),
+        }).catch(err => console.error("FormSubmit background notify failed:", err));
+      }
 
       if (isPaid) {
         // Redirect to Bank of Palestine (Mastercard) checkout using Paymob
@@ -736,7 +759,11 @@ export default function Order() {
                 type="submit"
                 className="flex items-center gap-3 px-10 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] transition-all"
               >
-                {t.order.form.next}
+                {form.serviceType !== "template_purchase"
+                  ? lang === "ar"
+                    ? "متابعة الطلب"
+                    : "Continue to Request"
+                  : t.order.form.next}
                 <ChevronRight size={20} strokeWidth={3} />
               </button>
             </div>
@@ -816,21 +843,21 @@ export default function Order() {
                         {lang === "ar" ? "المجموع الكلي" : "Gross Investment"}
                       </p>
                     </div>
-                    <div className="text-4xl font-black tracking-tighter text-primary">
-                      {selectedMainPath === "custom"
+                    <div className="text-3xl font-black tracking-tighter text-primary">
+                      {form.serviceType !== "template_purchase"
                         ? lang === "ar"
-                          ? "سيتم المناقشة"
-                          : "To be discussed"
-                        : `$${
-                            (selectedTemplate?.price || 0) +
-                            (selectedService
-                              ? parseInt(
-                                  selectedService.price.replace(/[^0-9]/g, ""),
-                                ) || 0
-                              : 0)
-                          }`}
+                          ? "سيتم مناقشة السعر"
+                          : "Will be discussed"
+                        : `$${selectedTemplate?.price || 0}`}
                     </div>
                   </div>
+                  {form.serviceType !== "template_purchase" && (
+                    <div className="mt-6 w-full text-left bg-primary/10 border border-primary/20 p-4 rounded-xl text-primary text-[10px] sm:text-xs font-bold tracking-wide leading-relaxed">
+                      {lang === "ar"
+                        ? "ملاحظة: آلية الدفع هي ٥٠٪ عربون مقدم قبل بدء العمل، والـ ٥٠٪ المتبقية تدفع بعد انتهاء المشروع والموافقة عليه."
+                        : "Note: Payment terms are 50% upfront deposit before work begins, and the remaining 50% is paid after the project is completed and approved."}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -901,10 +928,12 @@ export default function Order() {
                   </>
                 ) : (
                   <>
-                    {selectedMainPath === "custom"
+                    {form.serviceType !== "template_purchase"
                       ? lang === "ar"
                         ? "إرسال الطلب"
                         : "Send Request"
+                      : lang === "ar"
+                      ? "إتمام الشراء"
                       : "Confirm & Initialize"}
                     <ArrowRight
                       size={18}

@@ -70,13 +70,27 @@ function Particles({ count = 100 }) {
 
 export default function ThreeScene() {
   return (
-    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-      <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-background">
+      <Canvas 
+        camera={{ position: [0, 0, 5], fov: 45 }}
+        gl={{ 
+          powerPreference: "high-performance", 
+          antialias: false,
+          stencil: false,
+          depth: true
+        }}
+        dpr={1} // Fixes 100-year loading/stuttering on 4k/high-res screens by capping pixel ratio
+        onCreated={({ gl }) => {
+          gl.domElement.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            console.warn("WebGL Context Lost - Attempting to restore...");
+          }, false);
+        }}
+      >
         <ambientLight intensity={0.5} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-        <pointLight position={[-10, -10, -10]} />
+        <pointLight position={[10, 10, 10]} intensity={1} />
         <FloatingIcons />
-        <Particles count={150} />
+        <Particles count={100} />
       </Canvas>
     </div>
   );

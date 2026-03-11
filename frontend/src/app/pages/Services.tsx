@@ -228,12 +228,9 @@ export default function Services() {
                       {plan.description}
                     </p>
 
-                    <div className="flex items-baseline gap-2 mb-12">
-                      <span className="text-6xl font-black text-foreground tracking-tighter">
-                        {plan.yearlyPrice}
-                      </span>
-                      <span className="text-muted-foreground font-black text-xs uppercase tracking-widest ms-1">
-                        {t.homeExtra.perYear}
+                    <div className="flex items-center mb-12 min-h-[4.5rem]">
+                      <span className="text-3xl font-black text-foreground tracking-tighter uppercase leading-none">
+                        {lang === "ar" ? "يعتمد على المتطلبات" : "Custom Quote"}
                       </span>
                     </div>
 

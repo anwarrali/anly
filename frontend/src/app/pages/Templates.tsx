@@ -324,28 +324,6 @@ export default function Templates() {
                     >
                       {t.templates.buyNow}
                     </Link>
-                    <button
-                      onClick={async () => {
-                        try {
-                          const content = `Test Download Package\nTemplate: ${tpl.title || tpl.name}\n\nThis is a temporary test file. In production, this will download the actual template assets.`;
-                          const blob = new Blob([content], { type: "text/plain" });
-                          const url = window.URL.createObjectURL(blob);
-                          const link = document.createElement("a");
-                          link.href = url;
-                          link.download = `${(tpl.title || tpl.name).replace(/\s+/g, "_")}_Test.txt`;
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                          window.URL.revokeObjectURL(url);
-                        } catch (error) {
-                          console.error("Test download failed", error);
-                        }
-                      }}
-                      className="p-5 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                      title="Test Download"
-                    >
-                      <Download size={20} />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -439,28 +417,6 @@ export default function Templates() {
                         {t.templates.buyNow}
                         <ArrowRight size={16} />
                       </Link>
-                      <button
-                        onClick={async () => {
-                          try {
-                            const content = `Test Download Package\nTemplate: ${tpl.title || tpl.name}\n\nThis is a temporary test file. In production, this will download the actual template assets.`;
-                            const blob = new Blob([content], { type: "text/plain" });
-                            const url = window.URL.createObjectURL(blob);
-                            const link = document.createElement("a");
-                            link.href = url;
-                            link.download = `${(tpl.title || tpl.name).replace(/\s+/g, "_")}_Test.txt`;
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            window.URL.revokeObjectURL(url);
-                          } catch (error) {
-                            console.error("Test download failed", error);
-                          }
-                        }}
-                        className="px-8 py-4 bg-primary/10 text-primary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
-                        title="Test Download"
-                      >
-                        <Download size={16} />
-                      </button>
                     </div>
                   </div>
                 </div>

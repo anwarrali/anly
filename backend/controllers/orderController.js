@@ -7,7 +7,6 @@ import asyncHandler from "express-async-handler";
 import Order from "../models/Order.js";
 import Template from "../models/Template.js";
 import { sendSuccess } from "../utils/apiResponse.js";
-import { sendAdminNotification } from "../utils/emailService.js";
 
 // ============================================================
 //  @desc    Create a new order
@@ -24,19 +23,19 @@ export const createOrder = asyncHandler(async (req, res) => {
     amount = 0;
     editLimit = 0;
   } else if (serviceType === "basic_setup" || serviceType === "custom_basic") {
-    amount = 50;
+    amount = 0; // Setup/Custom prices discussed later
     editLimit = 5;
   } else if (
     serviceType === "standard_setup" ||
     serviceType === "custom_standard"
   ) {
-    amount = 80;
+    amount = 0;
     editLimit = 10;
   } else if (
     serviceType === "premium_setup" ||
     serviceType === "custom_premium"
   ) {
-    amount = 120;
+    amount = 0;
     editLimit = 999999;
   } else if (serviceType === "template_purchase" && templateId) {
     const template = await Template.findById(templateId);
@@ -47,7 +46,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     amount = template.price;
   }
 
-  // If it's a template setup (not custom), add the template price to the subscription
+  // If it's a template setup (not custom), just add the template price to the amount
   if (serviceType.endsWith("_setup") && templateId) {
     const template = await Template.findById(templateId);
     if (template) {
@@ -72,11 +71,6 @@ export const createOrder = asyncHandler(async (req, res) => {
     { path: "userId", select: "name email" },
     { path: "templateId", select: "title price" },
   ]);
-
-  // Notify Admin for modifications or custom requests
-  if (serviceType !== "template_purchase") {
-    await sendAdminNotification(populated, req.user);
-  }
 
   sendSuccess(res, 201, "Order created successfully", populated);
 });

@@ -339,30 +339,6 @@ export default function Home() {
                         >
                           {t.templates.buyNow}
                         </Link>
-                        <button
-                          onClick={async () => {
-                            try {
-                              const imgUrl = tpl.image || tpl.previewImages?.[0];
-                              const response = await fetch(imgUrl);
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              const link = document.createElement('a');
-                              link.href = url;
-                              link.download = `${tpl.title || tpl.name}.jpg`;
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                              window.URL.revokeObjectURL(url);
-                            } catch (error) {
-                              console.error('Download failed', error);
-                              window.open(tpl.image || tpl.previewImages?.[0], '_blank');
-                            }
-                          }}
-                          className="p-5 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                          title="Test Download"
-                        >
-                          <Download size={20} />
-                        </button>
                       </div>
                     </div>
                   </div>
@@ -503,12 +479,9 @@ export default function Home() {
                       {plan.description}
                     </p>
 
-                    <div className="flex items-baseline gap-2 mb-12">
-                      <span className="text-6xl font-black text-foreground tracking-tighter">
-                        {plan.yearlyPrice}
-                      </span>
-                      <span className="text-muted-foreground font-black text-xs uppercase tracking-widest">
-                        {t.homeExtra.perYear}
+                    <div className="flex items-center mb-12 min-h-[4.5rem]">
+                      <span className="text-3xl font-black text-foreground tracking-tighter uppercase leading-none">
+                        {lang === "ar" ? "يعتمد على المتطلبات" : "Custom Quote"}
                       </span>
                     </div>
 

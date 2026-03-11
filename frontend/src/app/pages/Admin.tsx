@@ -1383,7 +1383,7 @@ export default function Admin() {
                                 : order.date}
                             </td>
                             <td className="px-5 py-4 text-sm font-bold text-xl font-black text-foreground uppercase tracking-tight">
-                              ${order.amount}
+                              {order.amount === 0 ? "TBD" : `$${order.amount}`}
                             </td>
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-2">
