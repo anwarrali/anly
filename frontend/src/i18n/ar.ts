@@ -73,6 +73,7 @@ export const ar: Translations = {
     viewAll: "عرض جميع القوالب",
     preview: "معاينة",
     buyNow: "اشتري الآن",
+    badge: " أناقة",
     free: "مجاني",
     categories: {
       all: "الكل",
@@ -86,7 +87,6 @@ export const ar: Translations = {
       health: "صحة وطب",
       saas: "SaaS",
     },
-    badge: ""
   },
   // Services
   services: {
@@ -133,6 +133,7 @@ export const ar: Translations = {
           "تصميم فريد",
           "استضافة متضمنة",
           "تعديلات محدودة/سنة",
+          "دعم تصميم ذو أولوية",
         ],
       },
     ],
@@ -154,10 +155,7 @@ export const ar: Translations = {
         price: "$50",
         yearlyPrice: "$50",
         description: "إعداد ودعم أساسي.",
-        features: [
-          "5 تعديلات سنوياً",
-          "دعم عبر البريد الإلكتروني",
-        ],
+        features: ["5 تعديلات سنوياً", "دعم عبر البريد الإلكتروني"],
         cta: "ابدأ الآن",
       },
       {
@@ -166,10 +164,7 @@ export const ar: Translations = {
         price: "$80",
         yearlyPrice: "$80",
         description: "خيارنا الأكثر شعبية.",
-        features: [
-          "10 تعديلات سنوياً",
-          "دعم ذو أولوية",
-        ],
+        features: ["10 تعديلات سنوياً", "دعم ذو أولوية"],
         cta: "ابدأ الآن",
         popular: true,
       },
@@ -179,10 +174,7 @@ export const ar: Translations = {
         price: "$120",
         yearlyPrice: "$120",
         description: "أقصى درجات المرونة والدعم.",
-        features: [
-          "تعديلات غير محدودة",
-          "دعم ذو أولوية 24/7",
-        ],
+        features: ["تعديلات غير محدودة", "دعم ذو أولوية 24/7"],
         cta: "ابدأ الآن",
       },
     ],
@@ -379,5 +371,90 @@ export const ar: Translations = {
     support: "الدعم",
     preview: "معاينة",
     relatedTemplates: "قوالب ذات صلة",
+  },
+  // Extra Home
+  homeExtra: {
+    back: "رجوع",
+    plans: "خطط",
+    mostPopular: "الأكثر شعبية",
+    perYear: "/سنوياً",
+    processing: "جاري المعالجة",
+    orderNum: "طلب رقم #",
+    trustedBranding: "هوية موثوقة",
+    getStarted: "ابدأ الآن",
+  },
+  // Extra About
+  aboutExtra: {
+    dna: "جوهر",
+    principlesSubtitle:
+      "مبادؤنا التوجيهية تحدد كيف نبني المستقبل، قالباً تلو الآخر.",
+    excellenceDriven: "مدفوعون بالتميز",
+    since: "منذ عام 2024",
+    forgeLegacy: "اصنع إرثك الرقمي؟",
+    joinBusinesses:
+      "انضم إلى الشركات ذات الرؤية المستقبلية التي تثق بـ ANLY لتصميم هويتها الاحترافية عبر الإنترنت.",
+    startProject: "ابدأ مشروعك الآن",
+    connectWithUs: "تواصل معنا",
+  },
+  // Extra Services
+  servicesExtra: {
+    badge: "حلول ويب متكاملة للتوسع",
+    workflowTitle: "إتقان سير العمل",
+    workflowSubtitle:
+      "منهجية دقيقة وعالية الجودة تركز على النتائج، وتطلق رؤيتك في غضون 7 أيام فقط.",
+    standardBadge: "قياسي في كل مشروع",
+    standardSubtitle:
+      "نحن لا نساوم على الجودة. يتضمن كل بناء معايير رائدة في الصناعة بشكل افتراضي.",
+    scaleBusiness: "وسع نطاق عملك وراء الحدود",
+    strategySubtitle:
+      "استشارات خبيرة وتنفيذ متميز. اكتشف الاستراتيجية المثالية لقفزتك الرقمية التالية.",
+    talkExpert: "تحدث إلى خبير",
+    browseLibrary: "تصفح المكتبة",
+    collection: "مجموعة",
+    premiumChoice: "الخيار الأمثل",
+  },
+  // Extra Contact
+  contactExtra: {
+    badge: "اتصال مباشر",
+    successTitle: "تم الإرسال بنجاح",
+    successSubtitle:
+      "لقد استلمنا استفسارك. سيتواصل معك فريقنا المتخصص خلال دورة عمل واحدة.",
+    newTransmission: "رسالة جديدة",
+    initComm: "بدء التواصل",
+    mandatory: "الحقول المطلوبة مشار إليها بـ *",
+    messagePlaceholder: "متطلبات المشروع التفصيلية أو رسالتك...",
+  },
+  // Auth
+  auth: {
+    loginTitle: "تسجيل الدخول",
+    loginSubtitle: "الوصول إلى لوحة التحكم ومشاريعك",
+    registerTitle: "إنشاء حساب",
+    registerSubtitle: "انضم إلى Anly وابدأ في البناء",
+    emailLabel: "البريد الإلكتروني",
+    passwordLabel: "كلمة المرور",
+    confirmPasswordLabel: "تأكيد كلمة المرور",
+    nameLabel: "الاسم الكامل",
+    loginButton: "تسجيل الدخول",
+    registerButton: "إنشاء حساب",
+    noAccount: "ليس لديك حساب؟",
+    hasAccount: "لديك حساب بالفعل؟",
+    initializing: "جاري التهيئة...",
+    verifying: "جاري التحقق...",
+    strength: {
+      weak: "ضعيفة",
+      fair: "متوسطة",
+      good: "جيدة",
+      strong: "قوية",
+    },
+    loginHeroTitle: "ارتقِ بحضورك",
+    loginHeroHighlight: "الرقمي",
+    loginHeroSubtitle:
+      "وصول حصري لقوالب معرض الأعمال الاحترافية وإدارة علامتك التجارية مع Anly.",
+    registerHeroTitle: "ابنِ معرض أعمالك",
+    registerHeroHighlight: "النخبوي",
+    registerHeroSubtitle:
+      "انضم إلى الجيل القادم من المبدعين العصريين. أطلق هويتك الاحترافية في دقائق.",
+    securePortal: "بوابة آمنة",
+    newDeployment: "انضمام جديد",
   },
 };

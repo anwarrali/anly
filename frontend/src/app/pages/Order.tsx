@@ -147,37 +147,6 @@ export default function Order() {
     try {
       setLoading(true);
 
-      const isCustomRequest =
-        form.serviceType === "custom_design" ||
-        form.serviceType.startsWith("custom_");
-
-      if (isCustomRequest) {
-        await fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            _subject: `New Custom Order: ${form.company || form.name}`,
-            serviceType: form.serviceType,
-            name: form.name,
-            email: form.email,
-            phone: form.phone,
-            company: form.company,
-            website: form.website,
-            budget: form.budget,
-            timeline: form.timeline,
-            description: form.description,
-            requirements: form.requirements,
-            _captcha: "false",
-          }),
-        });
-        setSubmitted(true);
-        setLoading(false);
-        return;
-      }
-
       const payload = {
         templateId: form.templateId || null,
         serviceType: form.serviceType,

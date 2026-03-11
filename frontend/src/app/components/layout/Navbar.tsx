@@ -4,6 +4,8 @@ import { Menu, X, Globe, ChevronDown, LogOut } from "lucide-react";
 import { useI18n } from "../../../i18n";
 import { useAuth } from "../../context/AuthContext";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { motion } from "motion/react";
+import { useState as useReactState } from "react";
 
 export function Navbar() {
   const { t, lang, setLang, isRTL } = useI18n();
@@ -11,6 +13,7 @@ export function Navbar() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hoveredLink, setHoveredLink] = useReactState<string | null>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -64,13 +67,22 @@ export function Navbar() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                onMouseEnter={() => setHoveredLink(link.href)}
+                onMouseLeave={() => setHoveredLink(null)}
+                className={`px-4 py-2 relative text-sm font-bold transition-colors duration-300 ${
                   isActive(link.href)
-                    ? "text-primary bg-primary/10"
-                    : "text-muted-foreground hover:text-primary hover:bg-muted"
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-primary"
                 }`}
               >
                 {link.label}
+                {(isActive(link.href) || hoveredLink === link.href) && (
+                  <motion.div
+                    layoutId="nav-line"
+                    className="absolute -bottom-1 left-2 right-2 h-0.5 bg-primary rounded-full"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </Link>
             ))}
           </nav>

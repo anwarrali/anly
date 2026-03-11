@@ -10,6 +10,7 @@ import {
   Grid3X3,
   List,
   ShoppingCart,
+  Download,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import api from "../../utils/api";
@@ -233,15 +234,19 @@ export default function Templates() {
             </p>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          <>
+            <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6 animate-pulse select-none w-full">
+              {lang === "ar" ? "اسحب للتصفح" : "Swipe to explore"} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
+            </div>
+            <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
             {filtered.map((tpl, i) => (
               <div
                 key={tpl._id || tpl.id}
                 data-aos="fade-up"
                 data-aos-delay={i * 60}
-                className="group bg-card rounded-[2rem] overflow-hidden border border-border hover:shadow-3xl hover:shadow-olive-200/20 hover:-translate-y-2 transition-all duration-500"
+                className="group bg-card rounded-[2.5rem] overflow-hidden border border-border hover:border-primary/40 hover:scale-[1.01] transition-all duration-500 w-[85vw] md:w-auto flex-shrink-0 snap-center flex flex-col h-full shadow-sm"
               >
-                <div className="relative h-60 overflow-hidden">
+                <div className="relative h-60 overflow-hidden shrink-0">
                   <img
                     src={tpl.image}
                     alt={
@@ -252,10 +257,10 @@ export default function Templates() {
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 gap-3">
-                    <Link
-                      to={`/templates/${tpl._id || tpl.id}`}
-                      className="flex-1 text-center py-3 bg-card text-foreground text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary hover:text-primary-foreground transition-all shadow-xl"
-                    >
+                        <Link
+                          to={`/templates/${tpl._id || tpl.id}`}
+                          className="flex-1 text-center py-3 bg-card text-foreground text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary hover:text-primary-foreground transition-all shadow-md"
+                        >
                       {t.templates.preview}
                     </Link>
                     {tpl.demoUrl && (
@@ -282,52 +287,71 @@ export default function Templates() {
                     )}
                   </div>
                 </div>
-                <div className="p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors leading-tight mb-2">
-                        {lang === "ar"
-                          ? tpl.nameAr || tpl.title || tpl.name
-                          : tpl.title || tpl.name}
-                      </h3>
-                      <div className="flex items-center gap-1.5">
-                        <Star size={14} className="fill-primary text-primary" />
-                        <span className="text-xs text-foreground font-black">
-                          {tpl.rating}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider ms-1">
-                          ({tpl.reviews} reviews)
-                        </span>
-                      </div>
+                <div className="p-8 flex flex-col flex-1">
+                  <div className="flex flex-col items-center text-center mb-6">
+                    <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors leading-tight mb-4 tracking-tight min-h-[3rem] line-clamp-2">
+                      {lang === "ar"
+                        ? tpl.nameAr || tpl.title || tpl.name
+                        : tpl.title || tpl.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mb-4 justify-center">
+                      <Star size={14} className="fill-primary text-primary" />
+                      <span className="text-sm text-foreground font-black">
+                        {tpl.rating}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider ms-1">
+                        ({tpl.reviews} reviews)
+                      </span>
                     </div>
-                    <div className="flex flex-col items-end">
-                      <div className="text-2xl font-black text-primary">
-                        ${tpl.price}
-                      </div>
-                      {tpl.originalPrice && (
-                        <div className="text-[10px] text-muted-foreground line-through font-bold">
-                          ${tpl.originalPrice}
-                        </div>
-                      )}
+                    <div className="text-3xl font-black text-primary tracking-tighter">
+                      ${tpl.price}
                     </div>
+                    {tpl.originalPrice && (
+                      <div className="text-[10px] text-muted-foreground line-through font-bold">
+                        ${tpl.originalPrice}
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground mb-6 line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-muted-foreground mb-8 text-center line-clamp-2 leading-relaxed min-h-[2.5rem]">
                     {lang === "ar"
                       ? tpl.descriptionAr || tpl.description
                       : tpl.description}
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="mt-auto flex gap-3">
                     <Link
                       to={`/order?templateId=${tpl._id || tpl.id}&type=template_purchase`}
-                      className="flex-1 flex items-center justify-center gap-2 py-4 bg-muted text-foreground text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                      className="flex-1 flex items-center justify-center gap-2 py-5 bg-foreground text-background text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-white transition-all duration-300"
                     >
                       {t.templates.buyNow}
                     </Link>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const content = `Test Download Package\nTemplate: ${tpl.title || tpl.name}\n\nThis is a temporary test file. In production, this will download the actual template assets.`;
+                          const blob = new Blob([content], { type: "text/plain" });
+                          const url = window.URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.download = `${(tpl.title || tpl.name).replace(/\s+/g, "_")}_Test.txt`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          window.URL.revokeObjectURL(url);
+                        } catch (error) {
+                          console.error("Test download failed", error);
+                        }
+                      }}
+                      className="p-5 bg-blue-500/10 text-blue-600 rounded-2xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                      title="Test Download"
+                    >
+                      <Download size={20} />
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
+        </>
         ) : (
           /* List View */
           <div className="grid grid-cols-1 gap-6">
@@ -415,6 +439,28 @@ export default function Templates() {
                         {t.templates.buyNow}
                         <ArrowRight size={16} />
                       </Link>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const content = `Test Download Package\nTemplate: ${tpl.title || tpl.name}\n\nThis is a temporary test file. In production, this will download the actual template assets.`;
+                            const blob = new Blob([content], { type: "text/plain" });
+                            const url = window.URL.createObjectURL(blob);
+                            const link = document.createElement("a");
+                            link.href = url;
+                            link.download = `${(tpl.title || tpl.name).replace(/\s+/g, "_")}_Test.txt`;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            window.URL.revokeObjectURL(url);
+                          } catch (error) {
+                            console.error("Test download failed", error);
+                          }
+                        }}
+                        className="px-8 py-4 bg-primary/10 text-primary text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm flex items-center gap-2"
+                        title="Test Download"
+                      >
+                        <Download size={16} />
+                      </button>
                     </div>
                   </div>
                 </div>

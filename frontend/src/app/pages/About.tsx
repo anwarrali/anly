@@ -143,10 +143,10 @@ export default function About() {
                   </div>
                   <div>
                     <div className="text-lg font-black text-foreground tracking-tight line-clamp-1">
-                      Excellence Driven
+                      {t.aboutExtra.excellenceDriven}
                     </div>
                     <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                      Since 2024
+                      {t.aboutExtra.since}
                     </div>
                   </div>
                 </div>
@@ -185,15 +185,14 @@ export default function About() {
               data-aos="fade-up"
               className="text-4xl sm:text-5xl font-black text-foreground mb-6"
             >
-              The DNA of <span className="text-primary">ANLY</span>
+              {t.aboutExtra.dna} <span className="text-primary">ANLY</span>
             </h2>
             <p
               data-aos="fade-up"
               data-aos-delay="100"
               className="text-muted-foreground text-lg max-w-xl mx-auto font-medium"
             >
-              Our guiding principles define how we build the future, one
-              template at a time.
+              {t.aboutExtra.principlesSubtitle}
             </p>
           </div>
 
@@ -234,16 +233,15 @@ export default function About() {
             data-aos="fade-up"
             className="text-4xl sm:text-6xl font-black text-primary-foreground mb-8 tracking-tighter"
           >
-            Ready to Forge Your{" "}
-            <span className="text-olive-200">Digital Legacy?</span>
+            {lang === "ar" ? "" : "Ready to "}
+            <span className="text-olive-200">{t.aboutExtra.forgeLegacy}</span>
           </h2>
           <p
             data-aos="fade-up"
             data-aos-delay="100"
             className="text-xl text-primary-foreground/70 mb-14 max-w-2xl mx-auto leading-relaxed"
           >
-            Join the forward-thinking businesses that trust ANLY to architect
-            their professional online identity.
+            {t.aboutExtra.joinBusinesses}
           </p>
           <div
             data-aos="fade-up"
@@ -254,13 +252,13 @@ export default function About() {
               to="/order"
               className="px-12 py-5 bg-card text-foreground font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-background hover:scale-105 transition-all duration-300 shadow-2xl"
             >
-              Start Your Project
+              {t.aboutExtra.startProject}
             </Link>
             <Link
               to="/contact"
               className="px-12 py-5 border-2 border-white/20 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-white/10 transition-all duration-300"
             >
-              Connect With Us
+              {t.aboutExtra.connectWithUs}
             </Link>
           </div>
         </div>

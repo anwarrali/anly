@@ -14,14 +14,14 @@ import {
   BarChart3,
   Smartphone,
   Star,
+  Globe,
+  Search,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
+import { div } from "three/src/nodes/math/OperatorNode.js";
 
 export default function Services() {
   const { t, lang } = useI18n();
-  const [pricingPeriod, setPricingPeriod] = useState<"monthly" | "yearly">(
-    "yearly",
-  );
   const [activePath, setActivePath] = useState<string | null>(null);
   const [isRTL, setIsRTL] = useState(false);
   const navigate = useNavigate();
@@ -67,15 +67,11 @@ export default function Services() {
     },
   ];
 
-  const extraFeatures = [
-    { icon: Shield, label: "SSL Certificate" },
-    { icon: BarChart3, label: "Analytics Setup" },
-    { icon: Rocket, label: "Performance Optimization" },
-    { icon: Zap, label: "Fast CDN Delivery" },
-  ];
-
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div
+      className="min-h-screen bg-background pt-20"
+      dir={lang === "ar" ? "rtl" : "ltr"}
+    >
       {/* Header */}
       <div className="relative py-24 bg-background overflow-hidden border-b border-border">
         {/* Background Decorative Elements */}
@@ -90,11 +86,7 @@ export default function Services() {
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-8 shadow-sm"
           >
             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            <span>
-              {lang === "ar"
-                ? "خدمات الويب المتكاملة"
-                : "Complete Scale Web Solutions"}
-            </span>
+            <span>{t.servicesExtra.badge}</span>
           </div>
           <h1
             data-aos="fade-up"
@@ -123,128 +115,138 @@ export default function Services() {
         </div>
       </div>
 
-      {/* Services Grid */}
       <section className="py-24 bg-background relative border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {!activePath ? (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-              {t.services.options.map((opt, j) => (
-                <div
-                  key={opt.id}
-                  data-aos="fade-up"
-                  data-aos-delay={j * 100}
-                  className="group relative p-12 rounded-[2.5rem] bg-card border border-border hover:border-primary/30 hover:shadow-3xl hover:shadow-olive-200/20 hover:-translate-y-2 transition-all duration-500"
-                >
-                  <div className="w-20 h-20 rounded-[1.5rem] bg-primary text-primary-foreground flex items-center justify-center mb-10 shadow-2xl shadow-primary/20 group-hover:scale-110 transition-transform">
-                    {opt.id === "template" && <Zap size={36} />}
-                    {opt.id === "setup" && <Smartphone size={36} />}
-                    {opt.id === "custom" && <Star size={36} />}
-                  </div>
-
-                  <h3 className="text-3xl font-black text-foreground mb-4">
-                    {opt.name}
-                  </h3>
-                  <p className="text-muted-foreground mb-8 text-sm leading-relaxed">
-                    {opt.description}
-                  </p>
-
-                  <div className="space-y-4 mb-12">
-                    {opt.features.map((feat, k) => (
-                      <div
-                        key={k}
-                        className="flex items-center gap-3 text-xs font-bold text-foreground/80 uppercase tracking-widest"
-                      >
-                        <Check
-                          size={16}
-                          className="text-primary flex-shrink-0"
-                          strokeWidth={3}
-                        />
-                        {feat}
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() =>
-                      opt.id === "template"
-                        ? navigate("/templates")
-                        : setActivePath(opt.id || opt.name)
-                    }
-                    className="w-full flex items-center justify-center gap-3 py-5 bg-muted text-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary hover:text-primary-foreground transition-all duration-300 shadow-sm"
+            <div data-aos="fade-up">
+              <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6 animate-pulse select-none w-full">
+                {lang === "ar" ? "اسحب للتصفح" : "Swipe to explore"} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
+              </div>
+              <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-8 md:gap-12 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+                {t.services.options.map((opt, j) => (
+                  <div
+                    key={opt.id}
+                    data-aos="fade-up"
+                    data-aos-delay={j * 100}
+                    className="group relative p-10 md:p-12 rounded-[3.5rem] md:rounded-[4rem] bg-card border border-border/50 hover:border-primary/50 hover:shadow-4xl hover:-translate-y-4 transition-all duration-500 w-[85vw] md:w-auto flex-shrink-0 snap-center"
                   >
-                    {opt.cta}
-                    <ArrowRight size={16} />
-                  </button>
-                </div>
-              ))}
+                    <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-primary text-primary-foreground flex items-center justify-center mb-8 md:mb-10 shadow-glow group-hover:scale-110 transition-transform duration-500">
+                      {opt.id === "template" && <Zap size={40} />}
+                      {opt.id === "setup" && <Smartphone size={40} />}
+                      {opt.id === "custom" && <Star size={40} />}
+                    </div>
+
+                    <h3 className="text-2xl md:text-3xl font-black text-foreground mb-4 md:mb-6 tracking-tight">
+                      {opt.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8 md:mb-10 font-medium">
+                      {opt.description}
+                    </p>
+
+                    <div className="space-y-4 md:space-y-5 mb-10 md:mb-14">
+                      {opt.features.map((feat, k) => (
+                        <div key={k} className="flex items-center gap-4">
+                          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <Check
+                              size={12}
+                              className="text-primary"
+                              strokeWidth={4}
+                            />
+                          </div>
+                          <span className="text-xs md:text-sm font-bold text-foreground/80">
+                            {feat}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        opt.id === "template"
+                          ? navigate("/templates")
+                          : setActivePath(opt.id || opt.name)
+                      }
+                      className="w-full flex items-center justify-center py-5 md:py-6 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] bg-primary/10 text-primary border border-primary/20 rounded-3xl hover:bg-primary hover:text-white hover:border-primary transition-all duration-500 shadow-lg"
+                    >
+                      {opt.cta}
+                      <ArrowRight
+                        size={16}
+                        className={`ms-2 ${lang === "ar" ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div data-aos="fade-in">
               <div className="flex flex-col items-center mb-16">
-                <div className="flex items-center gap-4 bg-muted p-1 rounded-2xl border border-border mb-6">
+                <div className="flex items-center gap-4 bg-muted p-2 rounded-3xl border border-border">
                   <button
                     onClick={() => setActivePath(null)}
-                    className="flex items-center gap-2 px-4 py-2 text-xs font-black text-primary uppercase tracking-widest hover:bg-primary/10 rounded-xl transition-all"
+                    className="flex items-center gap-3 px-6 py-3 text-[10px] font-black uppercase tracking-widest text-primary hover:bg-white rounded-2xl transition-all shadow-sm"
                   >
                     <ArrowRight
-                      size={14}
-                      className={isRTL ? "" : "rotate-180"}
+                      size={16}
+                      className={lang === "ar" ? "" : "rotate-180"}
                     />
-                    {lang === "ar" ? "رجوع" : "Back"}
+                    {t.homeExtra.back}
                   </button>
-                  <div className="h-4 w-[1px] bg-border" />
-                  <span className="px-4 py-2 text-sm font-black text-foreground uppercase tracking-tight">
-                    {optName(activePath)} {lang === "ar" ? "خطط" : "Collection"}
+                  <div className="h-6 w-px bg-border" />
+                  <span className="px-6 py-3 text-sm font-black text-foreground uppercase tracking-tight">
+                    {optName(activePath)} {t.homeExtra.plans}
                   </span>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6 animate-pulse select-none w-full">
+                {lang === "ar" ? "اسحب للتصفح" : "Swipe to explore"} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
+              </div>
+              <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-8 md:gap-10 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pt-10 pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide max-w-6xl mx-auto">
                 {t.pricing.plans.map((plan, l) => (
                   <div
                     key={plan.id}
                     data-aos="fade-up"
                     data-aos-delay={l * 100}
-                    className={`relative p-10 rounded-[2.5rem] border-2 transition-all duration-500 hover:-translate-y-2 hover:shadow-3xl ${
+                    className={`relative p-10 md:p-12 rounded-[3.5rem] md:rounded-[4rem] border-2 transition-all duration-500 hover:-translate-y-3 w-[85vw] md:w-auto flex-shrink-0 snap-center ${
                       plan.popular
-                        ? "border-primary bg-card"
-                        : "border-border bg-card/50 hover:border-primary/20"
+                        ? "border-primary bg-card shadow-glow-primary"
+                        : "border-border bg-card/60 hover:border-primary/40 backdrop-blur-sm"
                     }`}
                   >
                     {plan.popular && (
-                      <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-6 py-2 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-xl">
-                        {lang === "ar" ? "الأكثر تميزاً" : "Premium Choice"}
+                      <div className="absolute -top-5 left-1/2 -translate-x-1/2 px-6 py-3 bg-primary text-white text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] rounded-full shadow-2xl z-20 whitespace-nowrap">
+                        {t.homeExtra.mostPopular}
                       </div>
                     )}
-                    <h3 className="text-2xl font-black text-foreground mb-1">
+                    <h3 className="text-3xl font-black text-foreground mb-2 tracking-tight">
                       {plan.name}
                     </h3>
-                    <p className="text-[10px] font-black text-primary uppercase mb-8 tracking-[0.2em]">
+                    <p className="text-[10px] font-black text-primary uppercase mb-8 tracking-[0.4em]">
                       {t.pricing.planNotice}
                     </p>
-                    <p className="text-sm text-muted-foreground mb-10 leading-relaxed font-medium">
+                    <p className="text-base text-muted-foreground mb-10 leading-relaxed font-medium">
                       {plan.description}
                     </p>
 
-                    <div className="flex items-baseline gap-1 mb-12">
-                      <span className="text-5xl font-black text-foreground tracking-tighter">
+                    <div className="flex items-baseline gap-2 mb-12">
+                      <span className="text-6xl font-black text-foreground tracking-tighter">
                         {plan.yearlyPrice}
                       </span>
-                      <span className="text-xs text-muted-foreground font-black uppercase tracking-widest ms-1">
-                        {lang === "ar" ? "/سنوياً" : "/year"}
+                      <span className="text-muted-foreground font-black text-xs uppercase tracking-widest ms-1">
+                        {t.homeExtra.perYear}
                       </span>
                     </div>
 
-                    <div className="space-y-5 mb-12">
+                    <div className="space-y-5 mb-16">
                       {plan.features.map((feat, m) => (
                         <div
                           key={m}
-                          className="flex items-center gap-4 text-xs font-bold text-foreground opacity-90"
+                          className="flex items-center gap-4 text-sm font-bold text-foreground"
                         >
                           <Check
-                            size={18}
+                            size={20}
                             className="text-primary flex-shrink-0"
-                            strokeWidth={3}
+                            strokeWidth={4}
                           />
                           {feat}
                         </div>
@@ -253,10 +255,10 @@ export default function Services() {
 
                     <Link
                       to={`/order?service=${activePath}&plan=${plan.id}`}
-                      className={`w-full flex items-center justify-center py-5 rounded-2xl text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl ${
+                      className={`w-full flex items-center justify-center py-6 rounded-3xl font-black text-[10px] uppercase tracking-[0.3em] transition-all duration-300 shadow-xl ${
                         plan.popular
-                          ? "bg-primary text-primary-foreground shadow-primary/20 hover:scale-[1.03]"
-                          : "bg-muted text-foreground hover:bg-primary hover:text-primary-foreground shadow-black/5"
+                          ? "bg-primary text-white shadow-primary/40 hover:scale-[1.05]"
+                          : "bg-foreground text-background hover:bg-primary hover:text-white shadow-black/5"
                       }`}
                     >
                       {plan.cta}
@@ -277,19 +279,18 @@ export default function Services() {
               data-aos="fade-up"
               className="text-4xl sm:text-5xl font-black text-foreground mb-6"
             >
-              Mastering the <span className="text-primary">Workflow</span>
+              {t.servicesExtra.workflowTitle}
             </h2>
             <p
               data-aos="fade-up"
               data-aos-delay="100"
               className="text-muted-foreground text-lg max-w-2xl mx-auto"
             >
-              A precise, high-end methodology focused on results, launching your
-              vision in as little as 7 days.
+              {t.servicesExtra.workflowSubtitle}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative font-medium">
             {processSteps.map((step, i) => {
               const Icon = step.icon;
               return (
@@ -320,57 +321,6 @@ export default function Services() {
         </div>
       </section>
 
-      {/* Extra Features Included */}
-      <section className="py-24 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 p-12 lg:p-20 bg-muted/30 border border-border rounded-[3.5rem] relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-olive-500/5 rounded-full blur-[80px]" />
-
-            <div className="flex-1 max-w-xl text-center lg:text-start lg:rtl:text-end relative z-10">
-              <h2
-                data-aos="fade-up"
-                className="text-3xl sm:text-5xl font-black text-foreground mb-6"
-              >
-                Standard with{" "}
-                <span className="text-primary">Every Project</span>
-              </h2>
-              <p
-                data-aos="fade-up"
-                data-aos-delay="100"
-                className="text-muted-foreground text-sm font-medium mb-10 leading-relaxed uppercase tracking-widest"
-              >
-                We don't compromise on quality. Every build includes
-                industry-leading standards by default.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                {extraFeatures.map((feat, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 p-4 bg-card border border-border rounded-2xl shadow-sm"
-                  >
-                    <feat.icon size={20} className="text-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/80">
-                      {feat.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="hidden lg:block w-[400px] relative">
-              <div className="aspect-square bg-primary/10 rounded-full flex items-center justify-center p-12 animate-spin-slow">
-                <div className="w-full h-full border-2 border-dashed border-primary/30 rounded-full flex items-center justify-center">
-                  <Shield size={120} className="text-primary/20" />
-                </div>
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Rocket size={60} className="text-primary animate-bounce" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="py-32 bg-primary relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -382,16 +332,14 @@ export default function Services() {
             data-aos="fade-up"
             className="text-4xl sm:text-6xl font-black text-primary-foreground mb-8 tracking-tighter"
           >
-            Scale Your Business{" "}
-            <span className="text-olive-200">Beyond Boundaries</span>
+            {t.servicesExtra.scaleBusiness}
           </h2>
           <p
             data-aos="fade-up"
             data-aos-delay="100"
-            className="text-xl text-primary-foreground/70 mb-14 max-w-2xl mx-auto leading-relaxed"
+            className="text-xl text-primary-foreground/70 mb-14 max-w-2xl mx-auto leading-relaxed font-medium"
           >
-            Expert consultation and premium execution. Discover the perfect
-            strategy for your next digital leap.
+            {t.servicesExtra.strategySubtitle}
           </p>
           <div
             data-aos="fade-up"
@@ -400,15 +348,15 @@ export default function Services() {
           >
             <Link
               to="/contact"
-              className="px-12 py-5 bg-card text-foreground font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-background hover:scale-105 transition-all duration-300 shadow-2xl"
+              className="px-12 py-5 bg-white text-primary font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-olive-50 hover:scale-105 transition-all duration-300 shadow-2xl"
             >
-              Talk to an Expert
+              {t.servicesExtra.talkExpert}
             </Link>
             <Link
               to="/templates"
               className="px-12 py-5 border-2 border-white/20 text-white font-black uppercase tracking-widest text-sm rounded-2xl hover:bg-white/10 transition-all duration-300"
             >
-              Browse Library
+              {t.servicesExtra.browseLibrary}
             </Link>
           </div>
         </div>

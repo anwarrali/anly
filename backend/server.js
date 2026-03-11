@@ -26,13 +26,20 @@ const PORT = process.env.PORT || 5000;
 // ============================================================
 //  Global Middleware
 // ============================================================
+const allowedOrigins = ["https://anlycode.pages.dev", "http://localhost:5173"];
 
 const corsOptions = {
-  origin: ["https://anlycode.pages.dev", "http://localhost:5173"],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
   credentials: true,
-  optionsSuccessStatus: 200,
 };
-
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 // Security headers
 app.use(
   helmet({
@@ -59,8 +66,6 @@ const limiter = rateLimit({
   },
 });
 app.use("/api", limiter);
-
-app.use(cors(corsOptions));
 // ============================================================
 //  API Routes
 // ============================================================

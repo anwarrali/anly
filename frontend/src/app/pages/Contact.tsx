@@ -16,8 +16,6 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
-const CONTACT_IMG =
-  "https://images.unsplash.com/photo-1596524430615-b46475ddff6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
 
 export default function Contact() {
   const { t, lang } = useI18n();
@@ -56,7 +54,7 @@ export default function Contact() {
       setSubmitted(true);
     } catch (err) {
       console.error(err);
-      alert("Failed to send message. Please try again.");
+      alert(lang === "ar" ? "فشل إرسال الرسالة. يرجى المحاولة مرة أخرى." : "Failed to send message. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -65,24 +63,17 @@ export default function Contact() {
   const contactInfo = [
     {
       icon: Mail,
-      label: "Email",
+      label: lang === "ar" ? "البريد الإلكتروني" : "Email",
       value: t.contact.info.email,
       color: "from-indigo-500 to-blue-500",
       link: `mailto:${t.contact.info.email}`,
     },
     {
       icon: Phone,
-      label: "Phone",
+      label: lang === "ar" ? "الهاتف" : "Phone",
       value: t.contact.info.phone,
       color: "from-green-500 to-emerald-500",
       link: `tel:${t.contact.info.phone}`,
-    },
-    {
-      icon: Clock,
-      label: "Hours",
-      value: t.contact.info.hours,
-      color: "from-amber-400 to-orange-500",
-      link: "#",
     },
   ];
 
@@ -94,7 +85,7 @@ export default function Contact() {
   ];
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background pt-20" dir={lang === "ar" ? "rtl" : "ltr"}>
       {/* Header */}
       <section className="relative py-24 bg-background overflow-hidden border-b border-border">
         {/* Background Decorative Elements */}
@@ -109,7 +100,7 @@ export default function Contact() {
             className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-8 shadow-sm"
           >
             <MessageSquare size={14} strokeWidth={3} />
-            <span>{lang === "ar" ? "تواصل معنا" : "Direct Connection"}</span>
+            <span>{t.contactExtra.badge}</span>
           </div>
           <h1
             data-aos="fade-up"
@@ -169,7 +160,7 @@ export default function Contact() {
                 className="p-8 bg-card border border-border rounded-[2.5rem]"
               >
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-6">
-                  Digital Presence
+                  {lang === "ar" ? "التواجد الرقمي" : "Digital Presence"}
                 </p>
                 <div className="flex gap-4">
                   {socials.map((soc) => {
@@ -188,26 +179,6 @@ export default function Contact() {
                 </div>
               </div>
 
-              {/* Image Decor */}
-              <div
-                data-aos="fade-right"
-                data-aos-delay="500"
-                className="relative rounded-[2.5rem] overflow-hidden hidden lg:block group"
-              >
-                <img
-                  src={CONTACT_IMG}
-                  alt="Contact us"
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent flex flex-col justify-end p-8">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-black text-white uppercase tracking-widest w-fit mb-2">
-                    Active Support
-                  </div>
-                  <p className="text-white text-lg font-black tracking-tight">
-                    Rapid Response Guaranteed
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Right: Form */}
@@ -222,11 +193,10 @@ export default function Contact() {
                       />
                     </div>
                     <h3 className="text-3xl font-black text-foreground mb-4 tracking-tighter">
-                      Transmission Successful
+                      {t.contactExtra.successTitle}
                     </h3>
                     <p className="text-muted-foreground max-w-sm leading-relaxed font-medium mb-10">
-                      We've received your inquiry. Our specialized team will
-                      reach out within one business cycle.
+                      {t.contactExtra.successSubtitle}
                     </p>
                     <button
                       onClick={() => {
@@ -240,23 +210,23 @@ export default function Contact() {
                       }}
                       className="px-10 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
                     >
-                      New Transmission
+                      {t.contactExtra.newTransmission}
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="mb-10">
                       <h3 className="text-2xl font-black text-foreground tracking-tighter mb-2">
-                        Initialize Communication
+                        {t.contactExtra.initComm}
                       </h3>
                       <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                        Mandatory fields marked with *
+                        {t.contactExtra.mandatory}
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ms-1">
                           {t.contact.form.name} *
                         </label>
                         <input
@@ -265,11 +235,11 @@ export default function Contact() {
                           value={form.name}
                           onChange={(e) => update("name", e.target.value)}
                           className="w-full px-6 py-4 bg-muted/50 border border-border rounded-2xl text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
-                          placeholder="Full Name"
+                          placeholder={lang === "ar" ? "الاسم الكامل" : "Full Name"}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                        <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ms-1">
                           {t.contact.form.email} *
                         </label>
                         <input
@@ -284,7 +254,7 @@ export default function Contact() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ms-1">
                         {t.contact.form.subject} *
                       </label>
                       <input
@@ -293,12 +263,12 @@ export default function Contact() {
                         value={form.subject}
                         onChange={(e) => update("subject", e.target.value)}
                         className="w-full px-6 py-4 bg-muted/50 border border-border rounded-2xl text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
-                        placeholder="Inquiry Objective"
+                        placeholder={lang === "ar" ? "هدف الاستفسار" : "Inquiry Objective"}
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                      <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ms-1">
                         {t.contact.form.message} *
                       </label>
                       <textarea
@@ -307,7 +277,7 @@ export default function Contact() {
                         value={form.message}
                         onChange={(e) => update("message", e.target.value)}
                         className="w-full px-6 py-4 bg-muted/50 border border-border rounded-2xl text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none font-medium"
-                        placeholder="Detailed project requirements or message..."
+                        placeholder={t.contactExtra.messagePlaceholder}
                       />
                     </div>
 
@@ -323,7 +293,7 @@ export default function Contact() {
                           <Send
                             size={16}
                             strokeWidth={3}
-                            className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"
+                            className={`group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform ${lang === "ar" ? "rotate-180" : ""}`}
                           />
                           {t.contact.form.submit}
                         </>

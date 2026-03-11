@@ -17,10 +17,12 @@ import {
   Check,
   ArrowRight,
 } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,7 +42,13 @@ export default function Register() {
     if (/[^A-Za-z0-9]/.test(password)) s++;
     return s; // 0-4
   })();
-  const strengthLabel = ["", "Weak", "Fair", "Good", "Strong"][strength];
+  const strengthLabel = [
+    "",
+    t.auth.strength.weak,
+    t.auth.strength.fair,
+    t.auth.strength.good,
+    t.auth.strength.strong,
+  ][strength];
 
   // Tailwind colors for strength
   const getStrengthColor = (level: number) => {
@@ -81,11 +89,15 @@ export default function Register() {
     setError("");
 
     if (password !== confirm) {
-      setError("Passwords do not match");
+      setError(lang === "ar" ? "كلمات المرور لا تتطابق" : "Passwords do not match");
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      setError(
+        lang === "ar"
+          ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+          : "Password must be at least 8 characters",
+      );
       return;
     }
 
@@ -100,7 +112,9 @@ export default function Register() {
     } catch (err: any) {
       setError(
         err?.response?.data?.message ||
-          "Registration failed. Please try again.",
+          (lang === "ar"
+            ? "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى."
+            : "Registration failed. Please try again."),
       );
     } finally {
       setLoading(false);
@@ -108,32 +122,38 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-row-reverse">
+    <div
+      className={`min-h-screen bg-background flex ${lang === "ar" ? "flex-row" : "flex-row-reverse"}`}
+      dir={lang === "ar" ? "rtl" : "ltr"}
+    >
       {/* Right side: Branding (Reversed for Register) */}
       <div className="hidden lg:flex w-1/2 bg-foreground text-background flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 -translate-x-1/2" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-olive-500/20 rounded-full blur-[100px] translate-y-1/2 translate-x-1/2" />
+        <div
+          className={`absolute top-0 ${lang === "ar" ? "right-0" : "left-0"} w-96 h-96 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 ${lang === "ar" ? "translate-x-1/2" : "-translate-x-1/2"}`}
+        />
+        <div
+          className={`absolute bottom-0 ${lang === "ar" ? "left-0" : "right-0"} w-96 h-96 bg-olive-500/20 rounded-full blur-[100px] translate-y-1/2 ${lang === "ar" ? "-translate-x-1/2" : "translate-x-1/2"}`}
+        />
 
-        <div className="relative z-10 flex justify-end">
+        <div className={`relative z-10 flex ${lang === "ar" ? "justify-start" : "justify-end"}`}>
           <Link to="/" className="flex items-center gap-3">
-            <span className="text-2xl font-black tracking-tight">Anly</span>
+            <span className="text-2xl font-black tracking-tight text-background">Anly</span>
             <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center font-black text-xl rounded-xl">
               A
             </div>
           </Link>
         </div>
 
-        <div className="relative z-10 max-w-md ml-auto text-right">
+        <div className={`relative z-10 max-w-md ${lang === "ar" ? "mr-auto text-right" : "ml-auto text-left"}`}>
           <h1 className="text-4xl xl:text-5xl font-black tracking-tighter mb-6 leading-[1.1]">
-            Initialize your digital{" "}
-            <span className="text-primary">infrastructure</span>.
+            {t.auth.registerHeroTitle}{" "}
+            <span className="text-primary">{t.auth.registerHeroHighlight}</span>.
           </h1>
-          <p className="text-muted text-lg font-medium leading-relaxed mb-8">
-            Establish your identity, unlock advanced tools, and scale your
-            operations without friction.
+          <p className="text-muted text-lg font-medium leading-relaxed mb-8 text-background/80">
+            {t.auth.registerHeroSubtitle}
           </p>
           <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-background/10 border border-border/10 text-xs font-black uppercase tracking-widest text-background backdrop-blur-md">
-            New Deployment
+            {t.auth.newDeployment}
           </div>
         </div>
       </div>
@@ -143,7 +163,7 @@ export default function Register() {
         {/* Mobile Logo */}
         <Link
           to="/"
-          className="absolute top-8 left-8 flex lg:hidden items-center gap-3"
+          className={`absolute top-8 ${lang === "ar" ? "right-8" : "left-8"} flex lg:hidden items-center gap-3`}
         >
           <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-black rounded-lg">
             A
@@ -154,17 +174,19 @@ export default function Register() {
         </Link>
 
         <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-4 duration-700 mt-12 lg:mt-0">
-          <div className="mb-10 text-center lg:text-left">
+          <div className={`mb-10 text-center ${lang === "ar" ? "lg:text-right" : "lg:text-left"}`}>
             <h2 className="text-3xl font-black text-foreground tracking-tighter mb-3">
-              Registration
+              {t.auth.registerTitle}
             </h2>
             <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-              Establish new credentials
+              {t.auth.registerSubtitle}
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-3 p-4 mb-8 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-sm font-bold">
+            <div
+              className={`flex items-center gap-3 p-4 mb-8 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-sm font-bold ${lang === "ar" ? "flex-row-reverse" : ""}`}
+            >
               <AlertCircle size={18} />
               <span>{error}</span>
             </div>
@@ -174,12 +196,14 @@ export default function Register() {
             <div className="space-y-2">
               <label
                 htmlFor="reg-name"
-                className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "mr-1" : "ml-1"}`}
               >
-                Full Identity
+                {t.auth.nameLabel}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                <div
+                  className={`absolute inset-y-0 ${lang === "ar" ? "right-0 pr-5" : "left-0 pl-5"} flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors`}
+                >
                   <User size={18} />
                 </div>
                 <input
@@ -192,8 +216,8 @@ export default function Register() {
                   }}
                   required
                   autoComplete="name"
-                  className="w-full pl-12 pr-6 py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
-                  placeholder="Designated Name"
+                  className={`w-full ${lang === "ar" ? "pr-12 pl-6" : "pl-12 pr-6"} py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium`}
+                  placeholder={lang === "ar" ? "اسمك الكامل" : "Your Full Name"}
                 />
               </div>
             </div>
@@ -201,12 +225,14 @@ export default function Register() {
             <div className="space-y-2">
               <label
                 htmlFor="reg-email"
-                className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "mr-1" : "ml-1"}`}
               >
-                Communication Vector
+                {t.auth.emailLabel}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                <div
+                  className={`absolute inset-y-0 ${lang === "ar" ? "right-0 pr-5" : "left-0 pl-5"} flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors`}
+                >
                   <Mail size={18} />
                 </div>
                 <input
@@ -219,8 +245,8 @@ export default function Register() {
                   }}
                   required
                   autoComplete="email"
-                  className="w-full pl-12 pr-6 py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
-                  placeholder="official@entity.com"
+                  className={`w-full ${lang === "ar" ? "pr-12 pl-6" : "pl-12 pr-6"} py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium`}
+                  placeholder="contact@anly.io"
                 />
               </div>
             </div>
@@ -228,12 +254,14 @@ export default function Register() {
             <div className="space-y-2">
               <label
                 htmlFor="reg-password"
-                className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "mr-1" : "ml-1"}`}
               >
-                Security Passkey
+                {t.auth.passwordLabel}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                <div
+                  className={`absolute inset-y-0 ${lang === "ar" ? "right-0 pr-5" : "left-0 pl-5"} flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors`}
+                >
                   <Lock size={18} />
                 </div>
                 <input
@@ -246,13 +274,13 @@ export default function Register() {
                   }}
                   required
                   autoComplete="new-password"
-                  className="w-full pl-12 pr-14 py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium"
-                  placeholder="Min. 8 characters"
+                  className={`w-full ${lang === "ar" ? "pr-12 pl-14" : "pl-12 pr-14"} py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium`}
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-muted-foreground hover:text-primary transition-colors focus:outline-none"
+                  className={`absolute inset-y-0 ${lang === "ar" ? "left-0 pl-5" : "right-0 pr-5"} flex items-center text-muted-foreground hover:text-primary transition-colors focus:outline-none`}
                   aria-label="Toggle password visibility"
                 >
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -260,7 +288,7 @@ export default function Register() {
               </div>
 
               {password.length > 0 && (
-                <div className="flex items-center justify-between mt-2 ml-1 mr-1">
+                <div className={`flex items-center justify-between mt-2 ${lang === "ar" ? "mr-1 ml-1" : "ml-1 mr-1"}`}>
                   <div className="flex gap-1.5 w-1/2">
                     {[1, 2, 3, 4].map((n) => (
                       <div
@@ -281,12 +309,14 @@ export default function Register() {
             <div className="space-y-2">
               <label
                 htmlFor="reg-confirm"
-                className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1"
+                className={`text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "mr-1" : "ml-1"}`}
               >
-                Verify Passkey
+                {t.auth.confirmPasswordLabel}
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+                <div
+                  className={`absolute inset-y-0 ${lang === "ar" ? "right-0 pr-5" : "left-0 pl-5"} flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors`}
+                >
                   <ShieldCheck size={18} />
                 </div>
                 <input
@@ -299,11 +329,13 @@ export default function Register() {
                   }}
                   required
                   autoComplete="new-password"
-                  className={`w-full pl-12 pr-14 py-4 bg-muted border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 transition-all font-medium ${confirm && confirm !== password ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/10" : "border-border focus:border-primary focus:ring-primary/5"}`}
-                  placeholder="Repeat sequence"
+                  className={`w-full ${lang === "ar" ? "pr-12 pl-14" : "pl-12 pr-14"} py-4 bg-muted border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 transition-all font-medium ${confirm && confirm !== password ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/10" : "border-border focus:border-primary focus:ring-primary/5"}`}
+                  placeholder="••••••••"
                 />
                 {confirm && confirm === password && (
-                  <div className="absolute inset-y-0 right-0 pr-5 flex items-center text-primary pointer-events-none animate-in zoom-in">
+                  <div
+                    className={`absolute inset-y-0 ${lang === "ar" ? "left-0 pl-5" : "right-0 pr-5"} flex items-center text-primary pointer-events-none animate-in zoom-in`}
+                  >
                     <Check size={18} strokeWidth={3} />
                   </div>
                 )}
@@ -318,28 +350,24 @@ export default function Register() {
               {loading ? (
                 <>
                   <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Processing...
+                  {t.auth.initializing}
                 </>
               ) : (
                 <>
-                  Allocate Resources
-                  <ArrowRight size={18} strokeWidth={3} />
+                  {t.auth.registerButton}
+                  <ArrowRight size={18} strokeWidth={3} className={lang === "ar" ? "rotate-180" : ""} />
                 </>
               )}
             </button>
-
-            <p className="text-center text-[10px] font-bold text-muted-foreground mt-4">
-              By proceeding, you agree to our Terms of Protocol
-            </p>
           </form>
 
           <p className="mt-10 text-center text-xs font-bold text-muted-foreground">
-            Entity already exists?{" "}
+            {t.auth.hasAccount}{" "}
             <Link
               to="/login"
               className="text-primary hover:underline underline-offset-4"
             >
-              Login
+              {t.auth.loginButton}
             </Link>
           </p>
         </div>

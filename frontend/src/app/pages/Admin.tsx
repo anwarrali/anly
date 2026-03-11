@@ -131,7 +131,6 @@ export default function Admin() {
     isNew: true,
     downloadUrl: "",
     templateFile: "",
-    twoCheckoutProductCode: "",
   });
 
   useEffect(() => {
@@ -316,7 +315,6 @@ export default function Admin() {
       isNew: true,
       downloadUrl: "",
       templateFile: "",
-      twoCheckoutProductCode: "",
     });
     setTemplateModalOpen(true);
   };
@@ -341,7 +339,6 @@ export default function Admin() {
       isNew: tpl.isNew !== undefined ? !!tpl.isNew : true,
       downloadUrl: tpl.downloadUrl || "",
       templateFile: tpl.templateFile || "",
-      twoCheckoutProductCode: tpl.twoCheckoutProductCode || "",
     });
     setTemplateModalOpen(true);
   };
@@ -566,27 +563,7 @@ export default function Admin() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1 text-xs font-black text-primary uppercase tracking-widest">
-                  2Checkout Product Code
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. ABCD1234 (from your 2Checkout dashboard)"
-                  className="w-full border border-indigo-100 bg-primary/10 border border-primary/20 text-primary/30 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-4 focus:outline-none focus:ring-indigo-100 transition-all font-mono"
-                  value={templateForm.twoCheckoutProductCode}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      twoCheckoutProductCode: e.target.value,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Required for Buy Now. Find it in 2Checkout → Products →
-                  Product Code.
-                </p>
-              </div>
+
 
               <div className="flex gap-6 py-2">
                 <label className="flex items-center gap-2 cursor-pointer group">
