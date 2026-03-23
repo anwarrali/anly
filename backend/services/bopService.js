@@ -29,8 +29,8 @@ const getAuthHeader = () => {
 //  Create a Hosted Checkout Session
 // ============================================================
 export const createCheckoutSession = async (order, template, user) => {
-  const orderId = order._id.toString();
-  const amount = order.amount.toFixed(2);
+  const orderId = order.id;
+  const amount = Number(order.amount).toFixed(2);
   const currency = "USD"; // Common for BOP: USD, ILS, JOD
 
   const returnUrl = `${process.env.CLIENT_URL}/dashboard?payment=success&orderId=${orderId}`;

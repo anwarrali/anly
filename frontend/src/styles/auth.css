@@ -47,7 +47,7 @@
   max-width: 420px;
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 1.25rem;
+  border-radius: 2.5rem;
   padding: 3rem 2.5rem;
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05);
   animation: authFadeIn 0.6s ease-out;
@@ -80,7 +80,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   font-weight: 800;
   font-size: 1.25rem;
   box-shadow: 0 10px 15px -3px var(--olive-200);
@@ -142,7 +142,7 @@
   padding: 0.875rem 1rem;
   background-color: var(--input-background);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 2rem;
   font-family: inherit;
   font-size: 0.9375rem;
   color: var(--foreground);
@@ -187,7 +187,7 @@
 
 .auth-alert {
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: 1.5rem;
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
   display: flex;
@@ -214,7 +214,7 @@
   background-color: var(--primary);
   color: var(--primary-foreground);
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 2rem;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;

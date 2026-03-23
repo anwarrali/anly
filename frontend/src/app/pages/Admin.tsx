@@ -115,22 +115,23 @@ export default function Admin() {
   const [isUploadingZip, setIsUploadingZip] = useState(false);
   const [templateForm, setTemplateForm] = useState({
     title: "",
-    category: "portfolio",
+    title_ar: "",
+    category: "business",
     price: "",
-    rating: 5,
-    reviews: 0,
-    image: "",
+    original_price: "",
+    image_url: "",
+    demo_url: "",
     description: "",
-    demoUrl: "",
-    originalPrice: "",
+    description_ar: "",
+    is_featured: false,
+    is_new_item: true,
+    download_url: "",
+    template_file_url: "",
+    preview_images: "",
     tags: "",
-    techStack: "",
+    tech_stack: "",
     features: "",
-    includes: "",
-    isFeatured: false,
-    isNew: true,
-    downloadUrl: "",
-    templateFile: "",
+    includes: ""
   });
 
   useEffect(() => {
@@ -197,7 +198,7 @@ export default function Admin() {
       const res = await api.post("/templates/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setTemplateForm((prev) => ({ ...prev, image: res.data.data.url }));
+      setTemplateForm((prev) => ({ ...prev, image_url: res.data.data.url }));
     } catch (err: any) {
       alert("Failed to upload image");
     } finally {
@@ -217,7 +218,7 @@ export default function Admin() {
           const res = await api.post("/templates/upload", formData, {
             headers: { "Content-Type": "multipart/form-data" },
           });
-          setTemplateForm((prev) => ({ ...prev, image: res.data.data.url }));
+          setTemplateForm((prev) => ({ ...prev, image_url: res.data.data.url }));
         } catch (err: any) {
           alert("Failed to upload pasted image");
         } finally {
@@ -247,7 +248,7 @@ export default function Admin() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setTemplateForm({ ...templateForm, templateFile: res.data.data.path });
+      setTemplateForm((prev) => ({ ...prev, template_file_url: res.data.data.path }));
       alert("ZIP file uploaded successfully!");
     } catch (err: any) {
       console.error("ZIP upload failed", err);
@@ -261,11 +262,15 @@ export default function Admin() {
     e.preventDefault();
     const payload = {
       ...templateForm,
+      preview_images: templateForm.preview_images
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
       tags: templateForm.tags
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-      techStack: templateForm.techStack
+      tech_stack: templateForm.tech_stack
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
@@ -277,6 +282,8 @@ export default function Admin() {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
+      price: parseFloat(templateForm.price) || 0,
+      original_price: templateForm.original_price ? parseFloat(templateForm.original_price) : null
     };
 
     try {
@@ -291,7 +298,8 @@ export default function Admin() {
       setTemplateModalOpen(false);
       fetchData();
     } catch (err: any) {
-      alert("Failed to save template");
+      console.error("Save template failed", err);
+      alert(err.response?.data?.message || "Failed to save template");
     }
   };
 
@@ -299,22 +307,23 @@ export default function Admin() {
     setEditingTemplate(null);
     setTemplateForm({
       title: "",
-      category: "portfolio",
+      title_ar: "",
+      category: "business",
       price: "",
-      originalPrice: "",
-      rating: 5,
-      reviews: 0,
-      image: "",
+      original_price: "",
+      image_url: "",
+      demo_url: "",
       description: "",
-      demoUrl: "",
+      description_ar: "",
+      is_featured: false,
+      is_new_item: true,
+      download_url: "",
+      template_file_url: "",
+      preview_images: "",
       tags: "",
-      techStack: "",
+      tech_stack: "",
       features: "",
-      includes: "",
-      isFeatured: false,
-      isNew: true,
-      downloadUrl: "",
-      templateFile: "",
+      includes: ""
     });
     setTemplateModalOpen(true);
   };
@@ -322,23 +331,24 @@ export default function Admin() {
   const openEditTemplate = (tpl: any) => {
     setEditingTemplate(tpl);
     setTemplateForm({
-      title: tpl.title || tpl.name || "",
-      category: tpl.category || "portfolio",
-      price: tpl.price || "",
-      originalPrice: tpl.originalPrice || "",
-      rating: tpl.rating || 5,
-      reviews: tpl.reviews || 0,
-      image: tpl.image || tpl.previewImages?.[0] || "",
+      title: tpl.title || "",
+      title_ar: tpl.title_ar || "",
+      category: tpl.category || "business",
+      price: tpl.price?.toString() || "",
+      original_price: tpl.original_price?.toString() || "",
+      image_url: tpl.image_url || "",
+      demo_url: tpl.demo_url || "",
       description: tpl.description || "",
-      demoUrl: tpl.demoUrl || "",
+      description_ar: tpl.description_ar || "",
+      is_featured: !!tpl.is_featured,
+      is_new_item: tpl.is_new_item !== undefined ? !!tpl.is_new_item : true,
+      download_url: tpl.download_url || "",
+      template_file_url: tpl.template_file_url || "",
+      preview_images: Array.isArray(tpl.preview_images) ? tpl.preview_images.join(", ") : "",
       tags: Array.isArray(tpl.tags) ? tpl.tags.join(", ") : "",
-      techStack: Array.isArray(tpl.techStack) ? tpl.techStack.join(", ") : "",
+      tech_stack: Array.isArray(tpl.tech_stack) ? tpl.tech_stack.join(", ") : "",
       features: Array.isArray(tpl.features) ? tpl.features.join(", ") : "",
-      includes: Array.isArray(tpl.includes) ? tpl.includes.join(", ") : "",
-      isFeatured: !!tpl.isFeatured,
-      isNew: tpl.isNew !== undefined ? !!tpl.isNew : true,
-      downloadUrl: tpl.downloadUrl || "",
-      templateFile: tpl.templateFile || "",
+      includes: Array.isArray(tpl.includes) ? tpl.includes.join(", ") : ""
     });
     setTemplateModalOpen(true);
   };
@@ -461,76 +471,113 @@ export default function Admin() {
   );
 
   return (
-    <div className="min-h-screen bg-background pt-16">
+    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} className="min-h-screen bg-background pt-16">
       {/* ADD/EDIT TEMPLATE MODAL */}
       {isTemplateModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
           <div className="bg-card border-border rounded-[2rem] shadow-xl w-full max-w-2xl p-6 overflow-y-auto max-h-[90vh]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">
-                {editingTemplate ? "Edit Template" : "Add Template"}
+                {editingTemplate ? t.admin.actions.editTemplate : t.admin.actions.addTemplate}
               </h2>
               <button onClick={() => setTemplateModalOpen(false)}>
-                <XCircle className="text-muted-foreground hover:text-[10px] font-black uppercase tracking-widest text-muted-foreground" />
+                <XCircle size={24} className="text-muted-foreground hover:text-primary transition-colors" />
               </button>
             </div>
             <form onSubmit={handleSaveTemplate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Title</label>
-                <input
-                  required
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={templateForm.title}
-                  onChange={(e) =>
-                    setTemplateForm({ ...templateForm, title: e.target.value })
-                  }
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t.admin.form.titleEn}</label>
+                  <input
+                    required
+                    placeholder="E-commerce Pro"
+                    className="w-full border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                    value={templateForm.title}
+                    onChange={(e) =>
+                      setTemplateForm({ ...templateForm, title: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 font-oswald tracking-widest text-primary uppercase text-[10px]">{t.admin.form.titleAr}</label>
+                  <input
+                    required
+                    placeholder="متجر الكتروني احترافي"
+                    className="w-full border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/20 font-bold"
+                    value={templateForm.title_ar}
+                    onChange={(e) =>
+                      setTemplateForm({ ...templateForm, title_ar: e.target.value })
+                    }
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Category
+                  {t.admin.form.category}
                 </label>
-                <select
-                  required
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={templateForm.category}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      category: e.target.value,
-                    })
-                  }
-                >
-                  <option value="business">Business</option>
-                  <option value="portfolio">Portfolio</option>
-                  <option value="ecommerce">E-commerce</option>
-                  <option value="blog">Blog</option>
-                  <option value="landing">Landing</option>
-                  <option value="restaurant">Restaurant</option>
-                  <option value="other">Other</option>
-                </select>
+                <div className="relative">
+                  <select
+                    required
+                    className="w-full border border-border rounded-lg px-4 py-3 bg-background-secondary text-foreground appearance-none focus:ring-2 focus:ring-primary/20 cursor-pointer pr-10"
+                    value={templateForm.category}
+                    onChange={(e) =>
+                      setTemplateForm({
+                        ...templateForm,
+                        category: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="business">{t.admin.categories.business}</option>
+                    <option value="portfolio">{t.admin.categories.portfolio}</option>
+                    <option value="ecommerce">{t.admin.categories.ecommerce}</option>
+                    <option value="blog">{t.admin.categories.blog}</option>
+                    <option value="landing">{t.admin.categories.landing}</option>
+                    <option value="restaurant">{t.admin.categories.restaurant}</option>
+                    <option value="other">{t.admin.categories.other}</option>
+                  </select>
+                  <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none text-primary ${lang === 'ar' ? 'left-4' : 'right-4'}`}>
+                    <ChevronDown size={14} />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Description
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={templateForm.description}
-                  onChange={(e) =>
-                    setTemplateForm({
-                      ...templateForm,
-                      description: e.target.value,
-                    })
-                  }
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">{t.admin.form.descriptionEn}</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="Main template description..."
+                    className="w-full border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                    value={templateForm.description}
+                    onChange={(e) =>
+                      setTemplateForm({
+                        ...templateForm,
+                        description: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 font-oswald tracking-widest text-primary uppercase text-[10px]">{t.admin.form.descriptionAr}</label>
+                  <textarea
+                    required
+                    rows={3}
+                    placeholder="وصف القالب باللغة العربية..."
+                    className="w-full border rounded-lg px-3 py-2 bg-background focus:ring-2 focus:ring-primary/20 font-bold"
+                    value={templateForm.description_ar}
+                    onChange={(e) =>
+                      setTemplateForm({
+                        ...templateForm,
+                        description_ar: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Price ($)
+                    {t.admin.form.price}
                   </label>
                   <input
                     required
@@ -547,89 +594,88 @@ export default function Admin() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Original Price ($)
+                    {t.admin.form.originalPrice}
                   </label>
                   <input
                     type="number"
-                    className="w-full border rounded-lg px-3 py-2"
-                    value={templateForm.originalPrice}
+                    step="0.01"
+                    className="w-full border rounded-lg px-3 py-2 bg-background"
+                    value={templateForm.original_price}
                     onChange={(e) =>
                       setTemplateForm({
                         ...templateForm,
-                        originalPrice: e.target.value,
+                        original_price: e.target.value,
                       })
                     }
                   />
                 </div>
               </div>
 
-
-
               <div className="flex gap-6 py-2">
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded text-xs font-black text-primary uppercase tracking-widest focus:ring-primary/20 focus:border-primary"
-                    checked={templateForm.isFeatured}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/20"
+                    checked={templateForm.is_featured}
                     onChange={(e) =>
                       setTemplateForm({
                         ...templateForm,
-                        isFeatured: e.target.checked,
+                        is_featured: e.target.checked,
                       })
                     }
                   />
-                  <span className="text-sm font-medium text-foreground group-hover:text-xs font-black text-primary uppercase tracking-widest transition-colors">
-                    Featured Template
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                    {t.admin.form.featured}
                   </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <input
                     type="checkbox"
-                    className="w-4 h-4 rounded text-xs font-black text-primary uppercase tracking-widest focus:ring-primary/20 focus:border-primary"
-                    checked={templateForm.isNew}
+                    className="w-4 h-4 rounded text-primary focus:ring-primary/20"
+                    checked={templateForm.is_new_item}
                     onChange={(e) =>
                       setTemplateForm({
                         ...templateForm,
-                        isNew: e.target.checked,
+                        is_new_item: e.target.checked,
                       })
                     }
                   />
-                  <span className="text-sm font-medium text-foreground group-hover:text-xs font-black text-primary uppercase tracking-widest transition-colors">
-                    New Release
+                  <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                    {t.admin.form.newRelease}
                   </span>
                 </label>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Live Demo URL
+                    {t.admin.form.demoUrl}
                   </label>
                   <input
                     type="url"
                     placeholder="https://example.com/demo"
-                    className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
-                    value={templateForm.demoUrl}
+                    className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                    value={templateForm.demo_url}
                     onChange={(e) =>
                       setTemplateForm({
                         ...templateForm,
-                        demoUrl: e.target.value,
+                        demo_url: e.target.value,
                       })
                     }
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
-                    Category Tags (comma separated)
+                    {t.admin.form.previewImages}
                   </label>
                   <input
                     type="text"
-                    placeholder="modern, minimal, fast"
-                    className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
-                    value={templateForm.tags}
+                    placeholder="url1, url2, url3"
+                    className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                    value={templateForm.preview_images}
                     onChange={(e) =>
                       setTemplateForm({
                         ...templateForm,
-                        tags: e.target.value,
+                        preview_images: e.target.value,
                       })
                     }
                   />
@@ -638,17 +684,17 @@ export default function Admin() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Tech Stack (comma separated)
+                  {t.admin.form.techStack}
                 </label>
                 <input
                   type="text"
                   placeholder="React, Tailwind, MongoDB"
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
-                  value={templateForm.techStack}
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  value={templateForm.tech_stack}
                   onChange={(e) =>
                     setTemplateForm({
                       ...templateForm,
-                      techStack: e.target.value,
+                      tech_stack: e.target.value,
                     })
                   }
                 />
@@ -656,12 +702,12 @@ export default function Admin() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Key Features (comma separated)
+                  {t.admin.form.features}
                 </label>
                 <textarea
                   rows={2}
                   placeholder="Responsive Design, Dark Mode, SEO Ready"
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                   value={templateForm.features}
                   onChange={(e) =>
                     setTemplateForm({
@@ -674,12 +720,12 @@ export default function Admin() {
 
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  What's Included (comma separated)
+                  {t.admin.form.includes}
                 </label>
                 <textarea
                   rows={2}
                   placeholder="Source Code, Documentation, 1 Year Updates"
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                   value={templateForm.includes}
                   onChange={(e) =>
                     setTemplateForm({
@@ -699,8 +745,8 @@ export default function Admin() {
                       type="text"
                       readOnly
                       placeholder="No ZIP file uploaded"
-                      className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background text-[10px] font-black uppercase tracking-widest text-muted-foreground italic"
-                      value={templateForm.templateFile}
+                      className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background text-muted-foreground italic"
+                      value={templateForm.template_file_url}
                     />
                   </div>
                   <label className="flex-shrink-0 cursor-pointer px-4 py-2.5 bg-primary/10 text-primary border border-primary/20 text-xs font-black uppercase tracking-widest rounded-xl text-sm font-semibold hover:bg-indigo-100 transition-all border border-indigo-100">
@@ -726,26 +772,23 @@ export default function Admin() {
                 <input
                   type="url"
                   placeholder="https://example.com/template.zip"
-                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all font-mono text-xs font-black text-primary uppercase tracking-widest"
-                  value={templateForm.downloadUrl}
+                  className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                  value={templateForm.download_url}
                   onChange={(e) =>
                     setTemplateForm({
                       ...templateForm,
-                      downloadUrl: e.target.value,
+                      download_url: e.target.value,
                     })
                   }
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Template Image
-                </label>
                 <div className="flex flex-col gap-3" onPaste={handlePaste}>
-                  {templateForm.image && (
-                    <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border shadow-3xl shadow-olive-200/5 bg-background">
+                  {templateForm.image_url && (
+                    <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-border bg-background">
                       <img
-                        src={templateForm.image}
+                        src={templateForm.image_url}
                         alt="Preview"
                         className="w-full h-full object-cover transition-opacity duration-300"
                         onLoad={(e) => (e.currentTarget.style.opacity = "1")}
@@ -757,12 +800,12 @@ export default function Admin() {
                       <input
                         type="text"
                         placeholder="Paste image URL here..."
-                        className="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:ring-4 focus:outline-none focus:ring-indigo-100 focus:border-primary outline-none transition-all"
-                        value={templateForm.image}
+                        className="w-full border border-border rounded-xl px-4 py-2.5 text-sm bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+                        value={templateForm.image_url}
                         onChange={(e) =>
                           setTemplateForm({
                             ...templateForm,
-                            image: e.target.value,
+                            image_url: e.target.value,
                           })
                         }
                       />
@@ -786,18 +829,27 @@ export default function Admin() {
                   </div>
                 </div>
               </div>
-              <button
-                type="submit"
-                className="w-full py-2 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] text-white rounded-lg hover:scale-[1.02] transition-transform font-semibold"
-              >
-                Save Template
-              </button>
+              <div className="flex gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setTemplateModalOpen(false)}
+                  className="flex-1 py-3 px-4 border border-border rounded-xl text-sm font-bold hover:bg-muted transition-all"
+                >
+                  {t.admin.form.cancel}
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  {t.admin.form.save}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row">
+      <div className="flex flex-col lg:flex-row" dir={lang === "ar" ? "rtl" : "ltr"}>
         {/* Sidebar */}
         <aside className="w-full lg:w-64 flex-shrink-0 lg:min-h-screen bg-card border-border border-b lg:border-e lg:border-b-0 shadow-3xl shadow-olive-200/5 lg:fixed top-16 bottom-0 overflow-y-auto z-40">
           {/* Admin Badge */}

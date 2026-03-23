@@ -1,13 +1,10 @@
 /**
  * controllers/adminController.js
- * Admin-specific APIs: dashboard stats, user management
+ * Supabase implementation for admin-specific APIs
  */
 
 import asyncHandler from "express-async-handler";
-import User from "../models/User.js";
-import Order from "../models/Order.js";
-import Payment from "../models/Payment.js";
-import Template from "../models/Template.js";
+import supabase from "../utils/supabase.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
 // ============================================================
@@ -16,24 +13,29 @@ import { sendSuccess } from "../utils/apiResponse.js";
 //  @access  Admin
 // ============================================================
 export const getDashboardStats = asyncHandler(async (_req, res) => {
-  const [totalUsers, totalOrders, totalTemplates, revenueResult] =
-    await Promise.all([
-      User.countDocuments({ role: "client" }),
-      Order.countDocuments(),
-      Template.countDocuments({ isPublished: true }),
-      Payment.aggregate([
-        { $match: { status: "succeeded" } },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
-    ]);
+  // 1. Fetch Counts & Revenue in Parallel
+  const [userCount, orderCount, templateCount, paymentsData] = await Promise.all([
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("role", "client"),
+    supabase.from("orders").select("*", { count: "exact", head: true }),
+    supabase.from("templates").select("*", { count: "exact", head: true }).eq("is_published", true),
+    supabase.from("payments").select("amount").eq("status", "succeeded")
+  ]);
 
-  const revenue = revenueResult[0]?.total || 0;
+  const totalUsers = userCount.count || 0;
+  const totalOrders = orderCount.count || 0;
+  const totalTemplates = templateCount.count || 0;
+  
+  const revenue = (paymentsData.data || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
 
-  const recentOrders = await Order.find()
-    .populate("userId", "name email")
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .lean();
+  // 2. Fetch Recent Orders
+  const { data: recentOrders } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      profiles(name, email)
+    `)
+    .order("created_at", { ascending: false })
+    .limit(5);
 
   sendSuccess(res, 200, "Dashboard stats retrieved", {
     totalUsers,
@@ -52,29 +54,35 @@ export const getDashboardStats = asyncHandler(async (_req, res) => {
 export const getAllUsers = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, role, search } = req.query;
 
-  const query = {};
-  if (role) query.role = role;
-  if (search)
-    query.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { email: { $regex: search, $options: "i" } },
-    ];
+  let query = supabase
+    .from("profiles")
+    .select("*", { count: "exact" });
 
-  const skip = (Number(page) - 1) * Number(limit);
-  const total = await User.countDocuments(query);
+  if (role) {
+    query = query.eq("role", role);
+  }
+  if (search) {
+    query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`);
+  }
 
-  const users = await User.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit))
-    .lean();
+  const from = (Number(page) - 1) * Number(limit);
+  const to = from + Number(limit) - 1;
+
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
 
   sendSuccess(res, 200, "Users retrieved", {
-    users,
+    users: data || [],
     pagination: {
-      total,
+      total: count,
       page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      pages: Math.ceil((count || 0) / Number(limit)),
     },
   });
 });
@@ -85,12 +93,18 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id).lean();
-  if (!user) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", req.params.id)
+    .single();
+
+  if (error || !data) {
     res.status(404);
     throw new Error("User not found");
   }
-  sendSuccess(res, 200, "User retrieved", user);
+
+  sendSuccess(res, 200, "User retrieved", data);
 });
 
 // ============================================================
@@ -100,23 +114,24 @@ export const getUserById = asyncHandler(async (req, res) => {
 // ============================================================
 export const updateUser = asyncHandler(async (req, res) => {
   const { role, isActive } = req.body;
-  const user = await User.findById(req.params.id);
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
+  
+  const updates = {};
+  if (role !== undefined) updates.role = role;
+  if (isActive !== undefined) updates.is_active = isActive;
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
   }
 
-  if (role !== undefined) user.role = role;
-  if (isActive !== undefined) user.isActive = isActive;
-
-  const updated = await user.save();
-  sendSuccess(res, 200, "User updated", {
-    _id: updated._id,
-    name: updated.name,
-    email: updated.email,
-    role: updated.role,
-    isActive: updated.isActive,
-  });
+  sendSuccess(res, 200, "User updated", data);
 });
 
 // ============================================================
@@ -125,10 +140,14 @@ export const updateUser = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const deleteUser = asyncHandler(async (req, res) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
+  // Using Service Role Client allows deleting from auth.users via supabase.auth.admin.deleteUser
+  // Profiles table will CASCADE delete due to FK constraint
+  const { error } = await supabase.auth.admin.deleteUser(req.params.id);
+
+  if (error) {
+    res.status(400);
+    throw new Error("Delete failed: " + error.message);
   }
-  sendSuccess(res, 200, "User deleted");
+
+  sendSuccess(res, 200, "User deleted from SeeV ecosystem");
 });

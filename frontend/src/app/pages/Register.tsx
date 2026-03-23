@@ -89,33 +89,39 @@ export default function Register() {
     setError("");
 
     if (password !== confirm) {
-      setError(lang === "ar" ? "كلمات المرور لا تتطابق" : "Passwords do not match");
+      setError(t.auth.error.mismatch);
       return;
     }
     if (password.length < 8) {
-      setError(
-        lang === "ar"
-          ? "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
-          : "Password must be at least 8 characters",
-      );
+      setError(t.auth.error.tooShort);
       return;
     }
 
     setLoading(true);
     try {
       const registeredUser = await register(name, email, password);
+      // Success: check role and navigate
       if (registeredUser.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/");
       }
     } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          (lang === "ar"
-            ? "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى."
-            : "Registration failed. Please try again."),
-      );
+      // 1. Check for axios dynamic error format
+      const backendError = err?.response?.data;
+      
+      if (backendError?.errors && Array.isArray(backendError.errors)) {
+        // Handle express-validator style errors
+        const firstError = backendError.errors[0]?.message || backendError.message;
+        setError(firstError);
+      } else if (backendError?.message) {
+        // Handle standard sendError format
+        setError(backendError.message);
+      } else {
+        // Fallback for network or unexpected errors
+        setError(t.auth.error.failed);
+      }
+      console.error("DEBUG: Frontend registration error:", backendError || err);
     } finally {
       setLoading(false);
     }
@@ -137,9 +143,9 @@ export default function Register() {
 
         <div className={`relative z-10 flex ${lang === "ar" ? "justify-start" : "justify-end"}`}>
           <Link to="/" className="flex items-center gap-3">
-            <span className="text-2xl font-black tracking-tight text-background">Anly</span>
+            <span className="text-2xl font-black tracking-tight text-background" dir="ltr">SeeV</span>
             <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center font-black text-xl rounded-xl">
-              A
+              S
             </div>
           </Link>
         </div>
@@ -166,10 +172,10 @@ export default function Register() {
           className={`absolute top-8 ${lang === "ar" ? "right-8" : "left-8"} flex lg:hidden items-center gap-3`}
         >
           <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-black rounded-lg">
-            A
+            S
           </div>
-          <span className="text-xl font-black tracking-tight text-foreground">
-            Anly
+          <span className="text-xl font-black tracking-tight text-foreground" dir="ltr">
+            SeeV
           </span>
         </Link>
 
@@ -217,7 +223,7 @@ export default function Register() {
                   required
                   autoComplete="name"
                   className={`w-full ${lang === "ar" ? "pr-12 pl-6" : "pl-12 pr-6"} py-4 bg-muted border border-border rounded-2xl text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium`}
-                  placeholder={lang === "ar" ? "اسمك الكامل" : "Your Full Name"}
+                  placeholder={t.auth.placeholder.name}
                 />
               </div>
             </div>
@@ -345,13 +351,13 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg mt-8"
+              className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg mt-8 overflow-hidden relative"
             >
               {loading ? (
-                <>
+                <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-300">
                   <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  {t.auth.initializing}
-                </>
+                  <span>{t.auth.processing}</span>
+                </div>
               ) : (
                 <>
                   {t.auth.registerButton}

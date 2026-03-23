@@ -11,49 +11,9 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
-import { teamMembers } from "../../utils/data";
 
 const ABOUT_IMG =
   "https://images.unsplash.com/photo-1758873271902-a63ecd5b5235?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
-const TEAM_IMG =
-  "https://images.unsplash.com/photo-1670851050245-d861fd433d06?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080";
-
-const values = [
-  {
-    icon: Target,
-    title: "Mission Driven",
-    titleAr: "قائمة على المهمة",
-    desc: "Every decision we make is guided by our commitment to helping our clients succeed online.",
-    descAr: "كل قرار نتخذه مدفوع بالتزامنا بمساعدة عملائنا على النجاح.",
-    color: "from-indigo-500 to-blue-500",
-  },
-  {
-    icon: Heart,
-    title: "Client Focused",
-    titleAr: "يتمحور حول العميل",
-    desc: "We put our clients first in everything we do from design decisions to support responses.",
-    descAr:
-      "نضع عملاءنا في المقام الأول في كل ما نفعله من قرارات التصميم إلى ردود الدعم.",
-    color: "from-pink-500 to-rose-500",
-  },
-  {
-    icon: Lightbulb,
-    title: "Innovation First",
-    titleAr: "الابتكار أولاً",
-    desc: "We constantly push boundaries to bring you the latest in web design and development trends.",
-    descAr:
-      "نحن نتجاوز الحدود باستمرار لنقدم لك أحدث اتجاهات تصميم وتطوير الويب.",
-    color: "from-amber-400 to-orange-500",
-  },
-  {
-    icon: Users,
-    title: "Community",
-    titleAr: "المجتمع",
-    desc: "We build lasting relationships with our clients and contribute to the business community.",
-    descAr: "نحن نبني علاقات دائمة مع عملائنا ونساهم في مجتمع الأعمال.",
-    color: "from-purple-500 to-indigo-600",
-  },
-];
 
 export default function About() {
   const { t, lang } = useI18n();
@@ -62,8 +22,10 @@ export default function About() {
     AOS.init({ duration: 650, once: true, easing: "ease-out-cubic" });
   }, []);
 
+  const valueIcons = [Target, Heart, Lightbulb, Users];
+
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background pt-20" dir={lang === "ar" ? "rtl" : "ltr"}>
       {/* Hero */}
       <section className="relative py-32 bg-background overflow-hidden border-b border-border">
         {/* Background Decorative Elements */}
@@ -74,7 +36,7 @@ export default function About() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-20 items-center">
-            <div className="text-center lg:text-start lg:rtl:text-end">
+            <div className="text-center lg:text-start">
               <div
                 data-aos="fade-up"
                 className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest mb-8 shadow-sm"
@@ -130,13 +92,13 @@ export default function About() {
               <div className="relative rounded-[3rem] overflow-hidden border border-border shadow-3xl">
                 <img
                   src={ABOUT_IMG}
-                  alt="About ANLY"
+                  alt="About SeeV"
                   className="w-full h-[500px] object-cover hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent" />
               </div>
               {/* Floating Element */}
-              <div className="absolute -bottom-10 -left-10 p-8 bg-card border border-border rounded-[2rem] shadow-3xl animate-bounce-slow">
+              <div className={`absolute -bottom-10 ${lang === 'ar' ? '-right-10' : '-left-10'} p-8 bg-card border border-border rounded-[2rem] shadow-3xl animate-bounce-slow`}>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
                     <Target size={24} />
@@ -185,7 +147,7 @@ export default function About() {
               data-aos="fade-up"
               className="text-4xl sm:text-5xl font-black text-foreground mb-6"
             >
-              {t.aboutExtra.dna} <span className="text-primary">ANLY</span>
+              {t.aboutExtra.dna} <span className="text-primary inline-block" dir="ltr">SeeV</span>
             </h2>
             <p
               data-aos="fade-up"
@@ -197,8 +159,8 @@ export default function About() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((val, i) => {
-              const Icon = val.icon;
+            {t.about.values.map((val, i) => {
+              const Icon = valueIcons[i] || Target;
               return (
                 <div
                   key={i}
@@ -210,10 +172,10 @@ export default function About() {
                     <Icon size={28} />
                   </div>
                   <h3 className="text-xl font-black text-foreground mb-4 uppercase tracking-tighter">
-                    {lang === "ar" ? val.titleAr : val.title}
+                    {val.title}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {lang === "ar" ? val.descAr : val.desc}
+                    {val.desc}
                   </p>
                 </div>
               );
@@ -231,10 +193,10 @@ export default function About() {
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <h2
             data-aos="fade-up"
-            className="text-4xl sm:text-6xl font-black text-primary-foreground mb-8 tracking-tighter"
+            className="text-4xl sm:text-6xl font-black text-primary-foreground mb-8 tracking-tighter px-4"
           >
-            {lang === "ar" ? "" : "Ready to "}
-            <span className="text-olive-200">{t.aboutExtra.forgeLegacy}</span>
+            {t.aboutExtra.readyTo}
+            <span className="text-olive-200 italic">{t.aboutExtra.forgeLegacy}</span>
           </h2>
           <p
             data-aos="fade-up"

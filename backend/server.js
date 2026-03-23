@@ -8,7 +8,6 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
-import { connectDB } from "./utils/connectDB.js";
 
 // ----- Routes -----------------------------------------------
 import authRoutes from "./routes/authRoutes.js";
@@ -96,13 +95,8 @@ app.use(errorHandler);
 // ============================================================
 //  Bootstrap
 // ============================================================
-const start = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(
-      `\n🚀  Anly SaaS Server running in ${process.env.NODE_ENV} mode on port ${PORT}`,
-    );
-  });
-};
-
-start();
+app.listen(PORT, () => {
+  console.log(
+    `\n🚀 SeeV API running in ${process.env.NODE_ENV} mode on port ${PORT}`,
+  );
+});

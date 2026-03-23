@@ -1,11 +1,10 @@
 /**
  * controllers/orderController.js
- * Client: create/view orders | Admin: view/update all orders
+ * Supabase implementation for platform orders
  */
 
 import asyncHandler from "express-async-handler";
-import Order from "../models/Order.js";
-import Template from "../models/Template.js";
+import supabase from "../utils/supabase.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
 // ============================================================
@@ -19,60 +18,86 @@ export const createOrder = asyncHandler(async (req, res) => {
   let amount = req.body.amount || 0;
   let editLimit = 0;
 
+  // Logic to determine amount/editLimit based on service types
   if (serviceType === "free_template") {
     amount = 0;
     editLimit = 0;
   } else if (serviceType === "basic_setup" || serviceType === "custom_basic") {
-    amount = 0; // Setup/Custom prices discussed later
+    amount = 0;
     editLimit = 5;
-  } else if (
-    serviceType === "standard_setup" ||
-    serviceType === "custom_standard"
-  ) {
+  } else if (serviceType === "standard_setup" || serviceType === "custom_standard") {
     amount = 0;
     editLimit = 10;
-  } else if (
-    serviceType === "premium_setup" ||
-    serviceType === "custom_premium"
-  ) {
+  } else if (serviceType === "premium_setup" || serviceType === "custom_premium") {
     amount = 0;
     editLimit = 999999;
   } else if (serviceType === "template_purchase" && templateId) {
-    const template = await Template.findById(templateId);
-    if (!template) {
-      res.status(404);
-      throw new Error("Template not found");
-    }
-    amount = template.price;
+    const { data: template } = await supabase
+      .from("templates")
+      .select("price")
+      .eq("id", templateId)
+      .single();
+    if (template) amount = template.price;
   }
 
-  // If it's a template setup (not custom), just add the template price to the amount
   if (serviceType.endsWith("_setup") && templateId) {
-    const template = await Template.findById(templateId);
-    if (template) {
-      amount += template.price;
+    const { data: template } = await supabase
+      .from("templates")
+      .select("price")
+      .eq("id", templateId)
+      .single();
+    if (template) amount += template.price;
+  }
+
+  // Determine initial status
+  const initialStatus = ["free_template", "template_purchase"].includes(serviceType)
+    ? "pending"
+    : "confirmed";
+
+  // 1. Insert into orders
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .insert([{
+      user_id: req.user.id,
+      template_id: templateId || null,
+      service_type: serviceType,
+      amount,
+      currency,
+      edit_limit: editLimit,
+      status: initialStatus
+    }])
+    .select()
+    .single();
+
+  if (orderError) {
+    res.status(400);
+    throw new Error(orderError.message);
+  }
+
+  // 2. Insert into customization_requests if siteData exists
+  if (siteData) {
+    const { error: customError } = await supabase
+      .from("customization_requests")
+      .insert([{
+        order_id: order.id,
+        business_name: siteData.businessName || "",
+        website_goal: siteData.websiteGoal || "",
+        color_preference: siteData.colorPreference || "",
+        brand_assets: siteData.brandAssets || [],
+        additional_notes: siteData.additionalNotes || "",
+        requirements: siteData.requirements || "",
+        phone: siteData.phone || "",
+        timeline: siteData.timeline || "",
+        budget_range: siteData.budgetRange || ""
+      }]);
+    
+    if (customError) {
+      process.env.NODE_ENV !== 'production' && console.error("Customization request insert failed:", customError);
+      // We don't throw here as the order was already created
     }
   }
 
-  const order = await Order.create({
-    userId: req.user._id,
-    templateId: templateId || null,
-    serviceType,
-    amount,
-    currency,
-    editLimit,
-    siteData: siteData || {},
-    status: ["free_template", "template_purchase"].includes(serviceType)
-      ? "pending"
-      : "confirmed",
-  });
-
-  const populated = await order.populate([
-    { path: "userId", select: "name email" },
-    { path: "templateId", select: "title price" },
-  ]);
-
-  sendSuccess(res, 201, "Order created successfully", populated);
+  sendSuccess(res, 201, "Order created successfully", order);
 });
 
 // ============================================================
@@ -81,15 +106,21 @@ export const createOrder = asyncHandler(async (req, res) => {
 //  @access  Private (client)
 // ============================================================
 export const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ userId: req.user._id })
-    .populate(
-      "templateId",
-      "title previewImages price downloadUrl templateFile",
-    )
-    .sort({ createdAt: -1 })
-    .lean();
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      templates(title, preview_images, price, download_url, template_file_url)
+    `)
+    .eq("user_id", req.user.id)
+    .order("created_at", { ascending: false });
 
-  sendSuccess(res, 200, "Orders retrieved", orders);
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+
+  sendSuccess(res, 200, "Orders retrieved", data);
 });
 
 // ============================================================
@@ -98,20 +129,23 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 //  @access  Private
 // ============================================================
 export const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id)
-    .populate("userId", "name email")
-    .populate("templateId", "title price previewImages");
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select(`
+      *,
+      profiles(name, email),
+      templates(title, price, preview_images),
+      customization_requests(*)
+    `)
+    .eq("id", req.params.id)
+    .single();
 
-  if (!order) {
+  if (error || !order) {
     res.status(404);
     throw new Error("Order not found");
   }
 
-  // Only owner or admin can view
-  if (
-    order.userId._id.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
+  if (order.user_id !== req.user.id && req.user.role !== "admin") {
     res.status(403);
     throw new Error("Access denied");
   }
@@ -126,27 +160,36 @@ export const getOrderById = asyncHandler(async (req, res) => {
 // ============================================================
 export const getAllOrders = asyncHandler(async (req, res) => {
   const { status, paymentStatus, page = 1, limit = 20 } = req.query;
-  const query = {};
-  if (status) query.status = status;
-  if (paymentStatus) query.paymentStatus = paymentStatus;
 
-  const skip = (Number(page) - 1) * Number(limit);
-  const total = await Order.countDocuments(query);
+  let query = supabase
+    .from("orders")
+    .select(`
+      *,
+      profiles(name, email),
+      templates(title, price, download_url, template_file_url)
+    `, { count: "exact" });
 
-  const orders = await Order.find(query)
-    .populate("userId", "name email")
-    .populate("templateId", "title price downloadUrl templateFile")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit))
-    .lean();
+  if (status) query = query.eq("status", status);
+  if (paymentStatus) query = query.eq("payment_status", paymentStatus);
+
+  const from = (Number(page) - 1) * Number(limit);
+  const to = from + Number(limit) - 1;
+
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
 
   sendSuccess(res, 200, "All orders retrieved", {
-    orders,
+    orders: data || [],
     pagination: {
-      total,
+      total: count,
       page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      pages: Math.ceil((count || 0) / Number(limit)),
     },
   });
 });
@@ -159,19 +202,24 @@ export const getAllOrders = asyncHandler(async (req, res) => {
 export const updateOrder = asyncHandler(async (req, res) => {
   const { status, paymentStatus, adminNote, deliveryDate } = req.body;
 
-  const order = await Order.findById(req.params.id);
-  if (!order) {
-    res.status(404);
-    throw new Error("Order not found");
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ 
+      status, 
+      payment_status: paymentStatus, 
+      admin_note: adminNote, 
+      delivery_date: deliveryDate 
+    })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
   }
 
-  if (status) order.status = status;
-  if (paymentStatus) order.paymentStatus = paymentStatus;
-  if (adminNote) order.adminNote = adminNote;
-  if (deliveryDate) order.deliveryDate = deliveryDate;
-
-  const updated = await order.save();
-  sendSuccess(res, 200, "Order updated", updated);
+  sendSuccess(res, 200, "Order updated", data);
 });
 
 // ============================================================
@@ -180,13 +228,18 @@ export const updateOrder = asyncHandler(async (req, res) => {
 //  @access  Private (client)
 // ============================================================
 export const cancelOrder = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
-  if (!order) {
+  const { data: order, error: getError } = await supabase
+    .from("orders")
+    .select("user_id, status")
+    .eq("id", req.params.id)
+    .single();
+
+  if (getError || !order) {
     res.status(404);
     throw new Error("Order not found");
   }
 
-  if (order.userId.toString() !== req.user._id.toString()) {
+  if (order.user_id !== req.user.id) {
     res.status(403);
     throw new Error("Access denied");
   }
@@ -196,8 +249,16 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     throw new Error("Only pending orders can be cancelled");
   }
 
-  order.status = "cancelled";
-  await order.save();
+  const { error: updateError } = await supabase
+    .from("orders")
+    .update({ status: "cancelled" })
+    .eq("id", req.params.id);
+
+  if (updateError) {
+    res.status(400);
+    throw new Error(updateError.message);
+  }
+
   sendSuccess(res, 200, "Order cancelled");
 });
 
@@ -207,25 +268,38 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 //  @access  Private (client)
 // ============================================================
 export const requestEdit = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const { data: order, error: getError } = await supabase
+    .from("orders")
+    .select("user_id, edit_count, edit_limit")
+    .eq("id", req.params.id)
+    .single();
 
-  if (!order) {
+  if (getError || !order) {
     res.status(404);
     throw new Error("Subscription not found");
   }
 
-  if (order.userId.toString() !== req.user._id.toString()) {
+  if (order.user_id !== req.user.id) {
     res.status(403);
     throw new Error("Access denied");
   }
 
-  if (order.editCount >= order.editLimit) {
+  if (order.edit_count >= order.edit_limit) {
     res.status(400);
     throw new Error("Edit limit reached. Please upgrade your plan.");
   }
 
-  order.editCount += 1;
-  await order.save();
+  const { data: updated, error: updateError } = await supabase
+    .from("orders")
+    .update({ edit_count: order.edit_count + 1 })
+    .eq("id", req.params.id)
+    .select()
+    .single();
 
-  sendSuccess(res, 200, "Edit request received", order);
+  if (updateError) {
+    res.status(400);
+    throw new Error(updateError.message);
+  }
+
+  sendSuccess(res, 200, "Edit request received", updated);
 });

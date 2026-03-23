@@ -33,11 +33,12 @@ export default function Login() {
         navigate("/");
       }
     } catch (err: any) {
+      const backendError = err?.response?.data;
       setError(
-        err?.response?.data?.message ||
+        backendError?.message ||
           (lang === "ar"
             ? "فشل تسجيل الدخول. يرجى التحقق من بياناتك."
-            : "Login failed. Please check your credentials."),
+            : "Login failed. Please check your credentials.")
       );
     } finally {
       setLoading(false);
@@ -54,9 +55,9 @@ export default function Login() {
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary text-primary-foreground flex items-center justify-center font-black text-xl rounded-xl">
-              A
+              S
             </div>
-            <span className="text-2xl font-black tracking-tight">Anly</span>
+            <span className="text-2xl font-black tracking-tight" dir="ltr">SeeV</span>
           </Link>
         </div>
 
@@ -82,10 +83,10 @@ export default function Login() {
           className={`absolute top-8 ${lang === "ar" ? "right-8" : "left-8"} flex lg:hidden items-center gap-3`}
         >
           <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center font-black rounded-lg">
-            A
+            S
           </div>
-          <span className="text-xl font-black tracking-tight text-foreground">
-            Anly
+          <span className="text-xl font-black tracking-tight text-foreground" dir="ltr">
+            SeeV
           </span>
         </Link>
 
@@ -174,13 +175,13 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg mt-8"
+              className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg mt-8 overflow-hidden relative"
             >
               {loading ? (
-                <>
+                <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-300">
                   <span className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  {t.auth.verifying}
-                </>
+                  <span>{lang === "ar" ? "جاري التحقق..." : "Verifying..."}</span>
+                </div>
               ) : (
                 <>
                   {t.auth.loginButton}

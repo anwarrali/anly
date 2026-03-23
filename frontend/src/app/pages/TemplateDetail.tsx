@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import api from "../../utils/api";
+import { TemplatePreview } from "../components/ui/TemplatePreview";
+import { AnimatePresence } from "motion/react";
 
 export default function TemplateDetail() {
   const { t, lang } = useI18n();
@@ -21,6 +23,7 @@ export default function TemplateDetail() {
   const [template, setTemplate] = useState<any>(null);
   const [relatedTemplates, setRelatedTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     AOS.init({ duration: 600, once: true, easing: "ease-out-cubic" });
@@ -56,33 +59,43 @@ export default function TemplateDetail() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!template) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center pt-20">
-        <h2 className="text-2xl font-bold mb-4">Template not found</h2>
-        <Link to="/templates" className="text-indigo-600 hover:underline">
-          Back to all templates
+      <div className="min-h-screen flex flex-col items-center justify-center pt-20" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+        <h2 className="text-2xl font-bold mb-4">{t.templateDetail.notFound}</h2>
+        <Link to="/templates" className="text-primary hover:underline">
+          {t.templateDetail.backToAll}
         </Link>
       </div>
     );
   }
 
-  const name = template.title || template.name || "";
-  const description = template.description || "";
-  const previewImages = [
-    template.image || template.previewImages?.[0],
-    ...(template.previewImages?.slice(1) || []),
-  ];
+  const name = lang === "ar" 
+    ? (template.title_ar || template.name_ar || template.nameAr || template.title || template.name) 
+    : (template.title || template.name);
+
+  const description = lang === "ar" 
+    ? (template.description_ar || template.descriptionAr || template.description) 
+    : (template.description);
+
+  const previewImages = Array.isArray(template.preview_images) 
+    ? template.preview_images 
+    : Array.isArray(template.previewImages) 
+      ? template.previewImages 
+      : [template.image_url || template.image || ""];
+
+  const demo_url = template.demo_url || template.demoUrl;
+
   if (previewImages.length === 0)
     previewImages.push("https://placehold.co/800x600?text=No+Image");
 
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div className="min-h-screen bg-background pt-20" dir={lang === "ar" ? "rtl" : "ltr"}>
       {/* Breadcrumb */}
       <div className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -114,8 +127,8 @@ export default function TemplateDetail() {
               to="/templates"
               className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary mb-10 transition-colors"
             >
-              <ChevronLeft size={14} strokeWidth={3} />
-              Return to Gallery
+              <ChevronLeft size={14} strokeWidth={3} className={lang === 'ar' ? 'rotate-180' : ''} />
+              {t.templateDetail.returnToGallery}
             </Link>
 
             {/* Main Image */}
@@ -129,26 +142,24 @@ export default function TemplateDetail() {
                 className="w-full h-[450px] object-cover group-hover:scale-[1.02] transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-10">
-                <a
-                  href={template.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setShowPreview(true)}
                   className="flex items-center gap-3 px-10 py-5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.05] transition-all shadow-2xl"
                 >
                   <Eye size={18} />
                   {t.templateDetail.liveDemo}
-                </a>
+                </button>
               </div>
               {/* Badges */}
-              <div className="absolute top-6 start-6 flex flex-col gap-2">
+              <div className={`absolute top-6 ${lang === 'ar' ? 'right-6' : 'left-6'} flex flex-col gap-2`}>
                 {template.isFeatured && (
                   <span className="px-4 py-2 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl">
-                    Featured Asset
+                    {t.templateDetail.featuredAsset}
                   </span>
                 )}
                 {template.isNew && (
                   <span className="px-4 py-2 bg-olive-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl">
-                    New Arrival
+                    {t.templateDetail.newArrival}
                   </span>
                 )}
               </div>
@@ -160,7 +171,7 @@ export default function TemplateDetail() {
               data-aos-delay="100"
               className="grid grid-cols-4 gap-4"
             >
-              {previewImages.slice(0, 4).map((img, i) => (
+              {previewImages.slice(0, 4).map((img: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => setActiveImg(i)}
@@ -187,7 +198,7 @@ export default function TemplateDetail() {
                 {template.features?.map((feat: string, i: number) => (
                   <div
                     key={i}
-                    className="flex items-center gap-4 p-6 bg-card rounded-2xl border border-border group hover:border-primary transition-colors"
+                    className={`flex items-center gap-4 p-6 bg-card rounded-2xl border border-border group hover:border-primary transition-colors ${lang === 'ar' ? 'flex-row-reverse text-right' : ''}`}
                   >
                     <div className="w-10 h-10 rounded-xl bg-muted text-primary flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                       <Check size={20} strokeWidth={3} />
@@ -212,7 +223,7 @@ export default function TemplateDetail() {
                 {template.includes?.map((inc: string, i: number) => (
                   <div
                     key={i}
-                    className="flex items-center gap-4 p-6 bg-card rounded-2xl border border-border group hover:border-primary/30 transition-colors"
+                    className={`flex items-center gap-4 p-6 bg-card rounded-2xl border border-border group hover:border-primary/30 transition-colors ${lang === 'ar' ? 'flex-row-reverse text-right' : ''}`}
                   >
                     <div className="w-10 h-10 rounded-xl bg-olive-50 text-olive-600 flex items-center justify-center flex-shrink-0 group-hover:bg-olive-600 group-hover:text-white transition-all">
                       <Check size={20} strokeWidth={3} />
@@ -229,7 +240,7 @@ export default function TemplateDetail() {
           {/* Right: Purchase Panel */}
           <div className="lg:col-span-1">
             <div data-aos="fade-left" className="sticky top-32">
-              <div className="bg-card rounded-[2.5rem] border border-border shadow-3xl shadow-olive-200/5 p-10">
+              <div className="bg-card rounded-[2.5rem] border border-border shadow-3xl shadow-olive-200/5 p-8 sm:p-10">
                 {/* Name & Rating */}
                 <h1 className="text-4xl font-black text-foreground mb-4 tracking-tighter leading-none">
                   {name}
@@ -262,10 +273,10 @@ export default function TemplateDetail() {
 
                 {/* Price Box */}
                 <div className="mb-10 p-8 bg-muted rounded-[2rem] border border-border relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className={`absolute top-0 ${lang === 'ar' ? 'left-0' : 'right-0'} w-24 h-24 bg-primary/5 rounded-full -translate-y-1/2 ${lang === 'ar' ? '-translate-x-1/2' : 'translate-x-1/2'}`} />
                   <div className="relative z-10">
                     <div className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-2">
-                      Investment
+                       {t.templateDetail.investment}
                     </div>
                     <div className="text-5xl font-black text-foreground tracking-tighter">
                       ${template.price}
@@ -273,10 +284,10 @@ export default function TemplateDetail() {
                     {template.originalPrice && (
                       <div className="flex items-center gap-3 mt-3">
                         <span className="text-sm text-muted-foreground line-through font-bold">
-                          Was ${template.originalPrice}
+                          {t.templateDetail.was} ${template.originalPrice}
                         </span>
                         <span className="px-3 py-1 bg-olive-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg">
-                          SAVE{" "}
+                          {t.templateDetail.save}{" "}
                           {Math.round(
                             (1 - template.price / template.originalPrice) * 100,
                           )}
@@ -289,16 +300,26 @@ export default function TemplateDetail() {
 
                 {/* Main Action Call */}
                 <div className="flex flex-col gap-4 mb-10">
+                  <button
+                    onClick={() => setShowPreview(true)}
+                    className="flex items-center justify-center w-full py-5 bg-muted text-primary border border-primary/20 rounded-2xl hover:bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
+                  >
+                    <div className="flex items-center gap-3 font-black text-xs uppercase tracking-[0.2em]">
+                      <Eye size={18} strokeWidth={3} />
+                      {t.templateDetail.livePreview}
+                    </div>
+                  </button>
+
                   <Link
                     to={`/order?templateId=${template._id || template.id}&type=template_purchase`}
                     className="flex flex-col items-center justify-center w-full py-6 bg-primary text-primary-foreground rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-300 group"
                   >
                     <div className="flex items-center gap-3 font-black text-xs uppercase tracking-[0.2em]">
                       <ShoppingCart size={18} strokeWidth={3} />
-                      Buy Asset
+                      {t.templateDetail.buyAsset}
                     </div>
                     <span className="text-[10px] text-primary-foreground/60 font-bold uppercase tracking-widest mt-1">
-                      Finalized Product • Instant Dev Access
+                      {t.templateDetail.instantAccess}
                     </span>
                   </Link>
 
@@ -307,10 +328,10 @@ export default function TemplateDetail() {
                     className="flex flex-col items-center justify-center w-full py-5 bg-muted border border-border text-foreground rounded-2xl hover:border-primary/30 hover:bg-card transition-all duration-300"
                   >
                     <div className="font-black text-xs uppercase tracking-[0.2em]">
-                      Custom Setup
+                      {t.templateDetail.customSetup}
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
-                      Modified Layout • Ready in 3-5 Days
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1 text-center">
+                      {t.templateDetail.readyIn}
                     </span>
                   </Link>
                 </div>
@@ -319,7 +340,7 @@ export default function TemplateDetail() {
                 <div className="space-y-6 pt-10 border-t border-border">
                   <div>
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-4">
-                      Architecture
+                      {t.templateDetail.architecture}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {template.techStack?.map((tech: string) => (
@@ -334,21 +355,21 @@ export default function TemplateDetail() {
                   </div>
 
                   <div className="grid grid-cols-1 gap-3">
-                    <div className="flex items-center gap-3 text-xs font-bold text-foreground/80">
+                    <div className={`flex items-center gap-3 text-xs font-bold text-foreground/80 ${lang === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                       <Check
                         size={16}
-                        className="text-primary"
+                        className="text-primary flex-shrink-0"
                         strokeWidth={3}
                       />
-                      30-Day Quality Assurance
+                      {t.templateDetail.qa}
                     </div>
-                    <div className="flex items-center gap-3 text-xs font-bold text-foreground/80">
+                    <div className={`flex items-center gap-3 text-xs font-bold text-foreground/80 ${lang === 'ar' ? 'flex-row-reverse text-right' : ''}`}>
                       <Check
                         size={16}
-                        className="text-primary"
+                        className="text-primary flex-shrink-0"
                         strokeWidth={3}
                       />
-                      Priority Technical Support
+                      {t.templateDetail.supportPriority}
                     </div>
                   </div>
                 </div>
@@ -356,71 +377,68 @@ export default function TemplateDetail() {
             </div>
           </div>
         </div>
-
         {/* Related Assets */}
         {relatedTemplates.length > 0 && (
           <div className="mt-32">
-            <div className="flex items-center justify-between mb-12">
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12 ${lang === 'ar' ? 'text-right' : ''}`}>
               <h2
                 data-aos="fade-up"
                 className="text-3xl font-black text-foreground tracking-tighter"
               >
-                Similar <span className="text-primary">Masterpieces</span>
+                 {t.templateDetail.similarMasterpieces.split(' ').slice(0, -1).join(' ')} <span className="text-primary">{t.templateDetail.similarMasterpieces.split(' ').slice(-1)}</span>
               </h2>
               <Link
                 to="/templates"
                 className="text-[10px] font-black uppercase tracking-widest text-primary hover:tracking-[0.3em] transition-all"
               >
-                View Entire Gallery
+                {t.templateDetail.viewEntireGallery}
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
               {relatedTemplates.map((tpl, i) => (
-                <div
-                  key={tpl.id}
+                <Link
+                  key={tpl.id || tpl._id}
+                  to={`/templates/${tpl.id || tpl._id}`}
                   data-aos="fade-up"
                   data-aos-delay={i * 80}
-                  className="group bg-card rounded-[2.5rem] overflow-hidden border border-border hover:shadow-3xl hover:shadow-olive-200/20 hover:-translate-y-2 transition-all duration-500"
+                  className="group relative bg-card rounded-[2.5rem] overflow-hidden border border-border hover:shadow-3xl hover:-translate-y-2 transition-all duration-500 flex flex-col"
                 >
-                  <div className="relative h-56 overflow-hidden">
+                  <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-muted m-2">
                     <img
-                      src={tpl.image}
-                      alt={lang === "ar" ? tpl.nameAr : tpl.name}
+                      src={tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null)}
+                      alt={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
-                    <div className="absolute top-4 start-4">
-                      <span className="px-3 py-1 bg-card/60 backdrop-blur-md text-[10px] font-black uppercase tracking-widest rounded-lg text-foreground">
-                        ${tpl.price}
+                    
+                    {/* Gradient Overlay & Title */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                      <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-1">
+                        {lang === 'ar' 
+                          ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title || tpl.name) 
+                          : (tpl.title || tpl.name)}
+                      </h3>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/50 mt-1">
+                        {tpl.category}
                       </span>
                     </div>
                   </div>
-                  <div className="p-8">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-black text-foreground group-hover:text-primary transition-colors">
-                        {lang === "ar" ? tpl.nameAr : tpl.name}
-                      </h3>
-                      <div className="flex items-center gap-1">
-                        <Star size={14} className="fill-primary text-primary" />
-                        <span className="text-xs font-black text-foreground">
-                          {tpl.rating}
-                        </span>
-                      </div>
-                    </div>
-                    <Link
-                      to={`/templates/${tpl.id}`}
-                      className="w-full flex items-center justify-center gap-2 py-4 bg-muted text-foreground text-xs font-black uppercase tracking-widest rounded-2xl group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                    >
-                      Inspect Detail
-                      <ArrowRight size={14} />
-                    </Link>
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showPreview && demo_url && (
+          <TemplatePreview 
+            url={demo_url} 
+            title={name} 
+            onClose={() => setShowPreview(false)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

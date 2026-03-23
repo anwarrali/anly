@@ -13,10 +13,11 @@ import {
 import api from "../../utils/api";
 
 interface User {
-  _id: string;
+  id: string; // Changed from _id to id for PostgreSQL/Supabase consistency
   name: string;
   email: string;
   role: "client" | "admin";
+  avatar_url?: string;
 }
 
 interface AuthContextType {
@@ -33,7 +34,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const loadUser = (): User | null => {
   try {
-    const raw = localStorage.getItem("anly_user");
+    const raw = localStorage.getItem("seev_user") || localStorage.getItem("anly_user");
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -43,36 +44,45 @@ const loadUser = (): User | null => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(loadUser);
   const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("anly_token"),
+    localStorage.getItem("seev_token") || localStorage.getItem("anly_token"),
   );
 
   const persist = (token: string, user: User) => {
-    localStorage.setItem("anly_token", token);
-    localStorage.setItem("anly_user", JSON.stringify(user));
+    localStorage.setItem("seev_token", token);
+    localStorage.setItem("seev_user", JSON.stringify(user));
+    // Clean up old keys
+    localStorage.removeItem("anly_token");
+    localStorage.removeItem("anly_user");
+    
     setToken(token);
     setUser(user);
   };
 
   const login = useCallback(async (email: string, password: string) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    persist(data.data.token, data.data.user);
-    return data.data.user;
+    const response = await api.post("/auth/login", { email, password });
+    const { data: content } = response.data;
+    persist(content.token, content.user);
+    return content.user;
   }, []);
 
   const register = useCallback(
     async (name: string, email: string, password: string) => {
-      const { data } = await api.post("/auth/register", {
+      const response = await api.post("/auth/register", {
         name,
         email,
         password,
       });
-      persist(data.data.token, data.data.user);
-      return data.data.user;
+      // response.data is the backend json: { success, data: { user, token } }
+      const { data: content } = response.data;
+      persist(content.token, content.user);
+      return content.user;
     },
     [],
   );
 
   const logout = useCallback(() => {
+    localStorage.removeItem("seev_token");
+    localStorage.removeItem("seev_user");
     localStorage.removeItem("anly_token");
     localStorage.removeItem("anly_user");
     setToken(null);

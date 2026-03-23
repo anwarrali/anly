@@ -1,14 +1,12 @@
 /**
  * middleware/authMiddleware.js
- * Verifies JWT and attaches req.user.
- * Also provides a role-guard factory: requireRole('admin')
+ * Verifies Supabase JWT and attaches public profile to req.user.
  */
 
-import jwt from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
-import User from "../models/User.js";
+import supabase from "../utils/supabase.js";
 
-// ---- protect: require valid JWT ----------------------------
+// ---- protect: require valid Supabase JWT ----------------------------
 export const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -21,25 +19,34 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw new Error("Not authorized — no token provided");
   }
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select("-password");
+  // Verify JWT with Supabase Auth
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-    if (!req.user) {
-      res.status(401);
-      throw new Error("Not authorized — user no longer exists");
-    }
-
-    if (!req.user.isActive) {
-      res.status(403);
-      throw new Error("Account has been deactivated");
-    }
-
-    next();
-  } catch (err) {
+  if (authError || !user) {
     res.status(401);
-    throw new Error("Not authorized — invalid token");
+    throw new Error("Not authorized — invalid or expired token");
   }
+
+  // Fetch the extended profile from our public schema
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile) {
+    res.status(401);
+    throw new Error("Not authorized — profile not found");
+  }
+
+  if (!profile.is_active) {
+    res.status(403);
+    throw new Error("Account has been deactivated");
+  }
+
+  // Attach profile to request
+  req.user = profile;
+  next();
 });
 
 // ---- requireRole: role-based access control ----------------

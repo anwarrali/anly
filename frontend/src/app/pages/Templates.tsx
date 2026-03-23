@@ -4,16 +4,11 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import {
   Search,
-  Star,
-  ArrowRight,
-  SlidersHorizontal,
-  Grid3X3,
-  List,
-  ShoppingCart,
-  Download,
+  ChevronDown,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import api from "../../utils/api";
+import { motion } from "motion/react";
 
 type Category =
   | "all"
@@ -34,31 +29,22 @@ export default function Templates() {
   const [category, setCategory] = useState<Category>("all");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [sortBy, setSortBy] = useState<
-    "popular" | "price-asc" | "price-desc" | "newest"
-  >("popular");
+  const [sortBy, setSortBy] = useState<"popular" | "price-asc" | "price-desc" | "newest">("popular");
+  
+
 
   useEffect(() => {
     AOS.init({ duration: 600, once: true, easing: "ease-out-cubic" });
     fetchTemplates();
   }, []);
 
-  useEffect(() => {
-    AOS.refresh();
-  }, [category, search]);
-
   const fetchTemplates = async () => {
     try {
       setLoading(true);
       const res = await api.get("/templates");
       const list = res.data?.data?.templates || res.data?.data || [];
-      const templatesArray = Array.isArray(list) ? list : [];
-      setDbTemplates(templatesArray);
-
-      // Refresh AOS after a short delay to ensure elements are in the DOM
-      setTimeout(() => {
-        AOS.refresh();
-      }, 100);
+      setDbTemplates(Array.isArray(list) ? list : []);
+      setTimeout(() => AOS.refresh(), 100);
     } catch (err) {
       console.error("Failed to fetch templates", err);
     } finally {
@@ -66,388 +52,160 @@ export default function Templates() {
     }
   };
 
-  const categories: { key: Category; label: string }[] = [
-    { key: "all", label: t.templates.categories.all },
-    { key: "business", label: t.templates.categories.business },
-    { key: "portfolio", label: t.templates.categories.portfolio },
-    { key: "ecommerce", label: t.templates.categories.ecommerce },
-    { key: "blog", label: t.templates.categories.blog },
-    { key: "landing", label: t.templates.categories.landing },
-    { key: "restaurant", label: t.templates.categories.restaurant },
-    { key: "realEstate", label: t.templates.categories.realEstate },
-    { key: "health", label: t.templates.categories.health },
-    { key: "saas", label: t.templates.categories.saas },
-  ];
-
   const filtered = dbTemplates
     .filter((tpl) => {
       const matchCat = category === "all" || tpl.category === category;
       const tplName = (tpl.title || tpl.name || "").toLowerCase();
-      const matchSearch =
-        search === "" ||
-        tplName.includes(search.toLowerCase()) ||
-        (tpl.tags || []).some((tag: string) =>
-          tag.toLowerCase().includes(search.toLowerCase()),
-        );
+      const matchSearch = search === "" || tplName.includes(search.toLowerCase());
       return matchCat && matchSearch;
     })
     .sort((a, b) => {
       if (sortBy === "price-asc") return a.price - b.price;
       if (sortBy === "price-desc") return b.price - a.price;
-      if (sortBy === "newest")
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+      if (sortBy === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       return (b.rating || 0) - (a.rating || 0);
     });
 
+  const categories: { key: Category; label: string }[] = [
+    { key: "all", label: t.templates.categories.all },
+    { key: "portfolio", label: t.templates.categories.portfolio },
+    { key: "business", label: t.templates.categories.business },
+    { key: "ecommerce", label: t.templates.categories.ecommerce },
+    { key: "restaurant", label: t.templates.categories.restaurant },
+    { key: "landing", label: t.templates.categories.landing },
+  ];
+
+
+
   return (
-    <div className="min-h-screen bg-background pt-20">
+    <div dir={lang === "ar" ? "rtl" : "ltr"} className="min-h-screen bg-background pt-20">
       {/* Header */}
-      <div className="relative py-24 bg-background overflow-hidden border-b border-border">
-        {/* Background Decorative Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-olive-100/30 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-olive-50/30 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
+      <section className="relative py-32 bg-background-secondary overflow-hidden border-b border-border">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <div
-            data-aos="fade-up"
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-8"
-          >
-            <span>{t.templates.badge}</span>
-          </div>
-          <h1
-            data-aos="fade-up"
-            className="text-4xl sm:text-6xl font-black text-foreground mb-6 tracking-tight"
-          >
-            {t.templates.title}{" "}
-            <span className="text-primary">{t.templates.titleHighlight}</span>
-          </h1>
-          <p
-            data-aos="fade-up"
-            data-aos-delay="100"
-            className="text-muted-foreground text-lg max-w-2xl mx-auto mb-12"
-          >
-            {t.templates.subtitle}
-          </p>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
+             <div className="flex items-center gap-4 mb-8">
+               <div className="w-10 h-px bg-primary" />
+               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">{t.templates.discovery}</span>
+             </div>
+            <h1 className="text-6xl sm:text-8xl font-black text-foreground mb-8 tracking-tighter uppercase font-oswald">
+              {t.homeExtra.back} <span className="text-primary italic">{t.templates.collection}</span>
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-2xl font-medium mb-12">
+              {t.templates.architectureDesc}
+            </p>
 
-          {/* Search */}
-          <div
-            data-aos="fade-up"
-            data-aos-delay="200"
-            className="relative max-w-xl mx-auto"
-          >
-            <Search
-              size={20}
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by category, name, or tags..."
-              className="w-full pl-14 pr-6 py-5 bg-card border border-border text-foreground placeholder-muted-foreground rounded-3xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-xl shadow-olive-200/5"
-            />
-          </div>
+              <div className="relative max-w-xl w-full">
+                <Search size={18} className={`absolute ${lang === 'ar' ? 'right-6' : 'left-6'} top-1/2 -translate-y-1/2 text-muted-foreground`} />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t.templates.searchPlaceholder}
+                  className={`w-full ${lang === 'ar' ? 'pr-16 pl-8' : 'pl-16 pr-8'} py-6 bg-background border border-border text-foreground rounded-full focus:outline-none focus:border-accent transition-all font-medium shadow-sm`}
+                />
+              </div>
+          </motion.div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Filters Bar */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 mb-12">
-          {/* Category Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Filters */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-16">
           <div className="flex flex-wrap gap-2">
             {categories.map((cat) => (
               <button
                 key={cat.key}
                 onClick={() => setCategory(cat.key)}
-                className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
-                  category === cat.key
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "bg-muted text-foreground border border-transparent hover:bg-card hover:border-border"
+                className={`px-8 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border rounded-full ${
+                  category === cat.key ? "bg-accent text-black border-accent shadow-glow-accent" : "bg-transparent text-muted-foreground border-border hover:border-accent"
                 }`}
               >
                 {cat.label}
               </button>
             ))}
           </div>
-
-          {/* Sort & View */}
           <div className="flex items-center gap-4 w-full lg:w-auto">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="flex-1 lg:flex-none px-5 py-2.5 text-xs font-black uppercase tracking-widest bg-muted border border-transparent rounded-2xl text-foreground focus:outline-none focus:border-primary cursor-pointer transition-all"
-            >
-              <option value="popular">Most Popular</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="newest">Newest</option>
-            </select>
-            <div className="flex bg-muted p-1 rounded-2xl border border-transparent">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={`p-2 rounded-xl transition-all ${
-                  viewMode === "grid"
-                    ? "bg-card text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Grid3X3 size={18} />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`p-2 rounded-xl transition-all ${
-                  viewMode === "list"
-                    ? "bg-card text-primary shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <List size={18} />
-              </button>
-            </div>
+             <div className="relative w-full lg:w-auto">
+               <select 
+                 value={sortBy} 
+                 onChange={(e) => setSortBy(e.target.value as any)}
+                 className={`w-full lg:w-64 bg-background-secondary border border-border ${lang === 'ar' ? 'pl-8 pr-12' : 'pl-12 pr-8'} py-4 text-[10px] font-black uppercase tracking-[0.2em] text-foreground focus:outline-none focus:border-accent rounded-full appearance-none hover:border-accent transition-all cursor-pointer shadow-sm`}
+               >
+                 <option value="newest">{t.templates.sortBy.newest}</option>
+                 <option value="popular">{t.templates.sortBy.popular}</option>
+                 <option value="price-low">{t.templates.sortBy.priceLow}</option>
+                 <option value="price-high">{t.templates.sortBy.priceHigh}</option>
+               </select>
+               <div className={`absolute ${lang === 'ar' ? 'left-6' : 'right-6'} top-1/2 -translate-y-1/2 pointer-events-none text-primary`}>
+                 <ChevronDown size={14} />
+               </div>
+             </div>
           </div>
         </div>
 
-        {/* Results Info */}
-        <div className="flex items-center justify-between mb-8 border-b border-border pb-4">
-          <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">
-            {loading ? (
-              "Loading collections..."
-            ) : (
-              <>
-                Discovered{" "}
-                <span className="text-primary">{filtered.length}</span> Premium
-                Templates
-              </>
-            )}
-          </p>
-        </div>
-
+        {/* Results */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 gap-6">
-            <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-            <p className="text-xs font-black text-primary uppercase tracking-widest animate-pulse">
-              Initializing Library
-            </p>
-          </div>
-        ) : viewMode === "grid" ? (
-          <>
-            <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6 animate-pulse select-none w-full">
-              {lang === "ar" ? "اسحب للتصفح" : "Swipe to explore"} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
-            </div>
-            <div className="flex flex-nowrap md:grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
-            {filtered.map((tpl, i) => (
-              <div
-                key={tpl._id || tpl.id}
-                data-aos="fade-up"
-                data-aos-delay={i * 60}
-                className="group bg-card rounded-[2.5rem] overflow-hidden border border-border hover:border-primary/40 hover:scale-[1.01] transition-all duration-500 w-[85vw] md:w-auto flex-shrink-0 snap-center flex flex-col h-full shadow-sm"
-              >
-                <div className="relative h-60 overflow-hidden shrink-0">
-                  <img
-                    src={tpl.image}
-                    alt={
-                      lang === "ar"
-                        ? tpl.nameAr || tpl.title || tpl.name
-                        : tpl.title || tpl.name
-                    }
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 gap-3">
-                        <Link
-                          to={`/templates/${tpl._id || tpl.id}`}
-                          className="flex-1 text-center py-3 bg-card text-foreground text-xs font-black uppercase tracking-widest rounded-xl hover:bg-primary hover:text-primary-foreground transition-all shadow-md"
-                        >
-                      {t.templates.preview}
-                    </Link>
-                    {tpl.demoUrl && (
-                      <a
-                        href={tpl.demoUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-3 bg-primary text-primary-foreground rounded-xl hover:scale-105 transition-all shadow-xl"
-                      >
-                        <ArrowRight size={18} className="-rotate-45" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="absolute top-5 start-5 flex flex-col gap-2">
-                    {tpl.isFeatured && (
-                      <span className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl">
-                        Featured
-                      </span>
-                    )}
-                    {tpl.isNewItem && (
-                      <span className="px-3 py-1 bg-olive-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl">
-                        New Arrival
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="p-8 flex flex-col flex-1">
-                  <div className="flex flex-col items-center text-center mb-6">
-                    <h3 className="text-xl font-black text-foreground group-hover:text-primary transition-colors leading-tight mb-4 tracking-tight min-h-[3rem] line-clamp-2">
-                      {lang === "ar"
-                        ? tpl.nameAr || tpl.title || tpl.name
-                        : tpl.title || tpl.name}
-                    </h3>
-                    <div className="flex items-center gap-1.5 mb-4 justify-center">
-                      <Star size={14} className="fill-primary text-primary" />
-                      <span className="text-sm text-foreground font-black">
-                        {tpl.rating}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider ms-1">
-                        ({tpl.reviews} reviews)
-                      </span>
-                    </div>
-                    <div className="text-3xl font-black text-primary tracking-tighter">
-                      ${tpl.price}
-                    </div>
-                    {tpl.originalPrice && (
-                      <div className="text-[10px] text-muted-foreground line-through font-bold">
-                        ${tpl.originalPrice}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-8 text-center line-clamp-2 leading-relaxed min-h-[2.5rem]">
-                    {lang === "ar"
-                      ? tpl.descriptionAr || tpl.description
-                      : tpl.description}
-                  </p>
-                  <div className="mt-auto flex gap-3">
-                    <Link
-                      to={`/order?templateId=${tpl._id || tpl.id}&type=template_purchase`}
-                      className="flex-1 flex items-center justify-center gap-2 py-5 bg-foreground text-background text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-primary hover:text-white transition-all duration-300"
-                    >
-                      {t.templates.buyNow}
-                    </Link>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="aspect-[4/3] bg-background-secondary border border-border mb-6" />
+                <div className="h-6 bg-background-secondary border border-border w-2/3 mb-4" />
+                <div className="h-4 bg-background-secondary border border-border w-full mb-2" />
+                <div className="h-4 bg-background-secondary border border-border w-1/2" />
               </div>
             ))}
           </div>
-        </>
         ) : (
-          /* List View */
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-12">
             {filtered.map((tpl, i) => (
-              <div
-                key={tpl._id || tpl.id}
+              <Link
+                key={tpl.id || tpl._id}
+                to={`/templates/${tpl.id || tpl._id}`}
                 data-aos="fade-up"
-                data-aos-delay={i * 40}
-                className="group flex flex-col md:flex-row bg-card rounded-[2.5rem] overflow-hidden border border-border hover:shadow-3xl hover:border-primary/20 transition-all duration-500"
+                data-aos-delay={i * 50}
+                className="group relative flex flex-col h-full border border-border hover:border-accent rounded-[1.2rem] sm:rounded-[3rem] transition-all duration-500 overflow-hidden bg-card"
               >
-                <div className="relative w-full md:w-80 h-64 md:h-auto flex-shrink-0 overflow-hidden">
-                  <img
-                    src={tpl.image}
-                    alt={
-                      lang === "ar"
-                        ? tpl.titleAr || tpl.nameAr || tpl.title || tpl.name
-                        : tpl.title || tpl.name
-                    }
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                <div className="relative aspect-[3/4] sm:aspect-[4/3] overflow-hidden bg-background-secondary rounded-[1rem] sm:rounded-[2.5rem] m-1 sm:m-2">
+                  <img 
+                    src={tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null)} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                    alt={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
                   />
-                  <div className="absolute top-5 start-5">
-                    {tpl.isFeatured && (
-                      <span className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg shadow-xl">
-                        Featured
+                  
+                  {/* Gradient Overlay & Title */}
+                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-10 flex flex-col justify-end">
+                    <h3 className="text-xs sm:text-xl font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-1 mb-0.5 sm:mb-2">
+                      {lang === 'ar' 
+                        ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title || tpl.name) 
+                        : (tpl.title || tpl.name)}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.3em] text-white/50">
+                        {t.templates.categories[tpl.category as keyof typeof t.templates.categories] || tpl.category}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Badges */}
+                  <div className={`absolute top-2 ${lang === 'ar' ? 'right-2' : 'left-2'} sm:top-6 sm: ${lang === 'ar' ? 'right-6' : 'left-6'} flex flex-col gap-1 sm:gap-2`}>
+                    {(tpl.is_featured || tpl.isFeatured) && (
+                      <span className="px-2 py-0.5 sm:px-4 sm:py-1.5 bg-accent text-white text-[7px] sm:text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-2xl backdrop-blur-md">
+                        {t.templates.featured}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="flex-1 p-10 flex flex-col justify-between">
-                  <div>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                      <h3 className="text-2xl font-black text-foreground">
-                        {lang === "ar"
-                          ? tpl.titleAr || tpl.nameAr || tpl.title || tpl.name
-                          : tpl.title || tpl.name}
-                      </h3>
-                      <div className="flex items-center gap-1.5 bg-muted px-3 py-1.5 rounded-xl border border-border">
-                        <Star size={16} className="fill-primary text-primary" />
-                        <span className="text-sm text-foreground font-black">
-                          {tpl.rating}
-                        </span>
-                        <span className="text-xs text-muted-foreground font-bold">
-                          ({tpl.reviews})
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed mb-6 max-w-2xl">
-                      {lang === "ar"
-                        ? tpl.descriptionAr || tpl.description
-                        : tpl.description}
-                    </p>
-                    <div className="flex flex-wrap gap-2 mb-8">
-                      {tpl.tags?.map((tag: string) => (
-                        <span
-                          key={tag}
-                          className="px-3 py-1 bg-muted text-muted-foreground text-[10px] font-black uppercase tracking-widest rounded-lg"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between gap-6 pt-8 border-t border-border">
-                    <div className="flex flex-col">
-                      <span className="text-3xl font-black text-primary">
-                        ${tpl.price}
-                      </span>
-                      {tpl.originalPrice && (
-                        <span className="text-xs text-muted-foreground line-through font-bold">
-                          Was ${tpl.originalPrice}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <Link
-                        to={`/templates/${tpl._id || tpl.id}`}
-                        className="px-8 py-4 bg-muted text-foreground text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-card hover:border-border transition-all"
-                      >
-                        {t.templates.preview}
-                      </Link>
-                      <Link
-                        to={`/order?templateId=${tpl._id || tpl.id}&type=template_purchase`}
-                        className="flex items-center gap-3 px-8 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-2xl hover:shadow-xl hover:shadow-primary/20 transition-all"
-                      >
-                        {t.templates.buyNow}
-                        <ArrowRight size={16} />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </Link>
             ))}
-          </div>
-        )}
-
-        {filtered.length === 0 && (
-          <div className="text-center py-40">
-            <div className="w-24 h-24 rounded-[2rem] bg-muted flex items-center justify-center mx-auto mb-8 shadow-inner">
-              <SlidersHorizontal size={36} className="text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-black text-foreground mb-4 uppercase tracking-tight">
-              Collection Exhausted
-            </h3>
-            <p className="text-muted-foreground max-w-xs mx-auto mb-10 leading-relaxed">
-              We couldn't find any templates matching your specific criteria.
-            </p>
-            <button
-              onClick={() => {
-                setCategory("all");
-                setSearch("");
-              }}
-              className="px-10 py-4 bg-primary text-primary-foreground text-xs font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-xl shadow-primary/20"
-            >
-              Reset Discovery
-            </button>
           </div>
         )}
       </div>
+
+
     </div>
   );
 }

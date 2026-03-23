@@ -12,11 +12,11 @@ export function Footer() {
         <div className="py-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
           <div className="lg:col-span-2">
             <Link to="/" className="flex items-center gap-3 mb-6 group">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xl transition-transform group-hover:scale-110">
-                A
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-black text-xl transition-transform group-hover:scale-110 group-hover:bg-accent group-hover:text-black">
+                S
               </div>
               <span className="text-2xl font-black tracking-tight text-white">
-                ANLY
+                See<span className="text-accent">V</span>
               </span>
             </Link>
             <p className="text-white/40 text-sm font-medium leading-relaxed mb-8 max-w-sm">

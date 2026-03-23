@@ -1,11 +1,10 @@
 /**
  * controllers/authController.js
- * Handles: register, login, getProfile, updateProfile
+ * Handles: register, login, getProfile, updateProfile via Supabase Auth
  */
 
 import asyncHandler from "express-async-handler";
-import User from "../models/User.js";
-import { generateToken } from "../utils/generateToken.js";
+import supabase from "../utils/supabase.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 
 // ============================================================
@@ -16,58 +15,78 @@ import { sendSuccess } from "../utils/apiResponse.js";
 export const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
 
-  const exists = await User.findOne({ email });
-  if (exists) {
+  // Supabase Auth Admin Create (Bypasses email rate limits and confirms instantly)
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { name }
+  });
+
+  if (error) {
+    console.error("❌ Registration error from Supabase:", error);
     res.status(400);
-    throw new Error("Email already registered");
+    throw new Error(error.message);
   }
 
-  const user = await User.create({ name, email, password });
+  // After successful creation, immediately sign the user in to get a session
+  const { data: signData, error: signError } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
 
-  const token = generateToken(user._id);
+  if (signError) {
+    console.error("❌ Auto-login error after registration:", signError);
+    // Don't fail the whole request, but return null session
+  }
 
   sendSuccess(res, 201, "Registration successful", {
-    token,
-    user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt,
-    },
+    token: signData.session?.access_token || null,
+    user: signData.user || data.user,
+    profileSync: "Profiles are synced via background trigger"
   });
 });
 
 // ============================================================
-//  @desc    Login user & return JWT
+//  @desc    Login user & return Access Token
 //  @route   POST /api/auth/login
 //  @access  Public
 // ============================================================
 export const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  // Include password for comparison
-  const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.matchPassword(password))) {
+  // Supabase Auth SignIn
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error || !data.user) {
     res.status(401);
     throw new Error("Invalid email or password");
   }
 
-  if (!user.isActive) {
+  // Fetch expanded profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", data.user.id)
+    .single();
+
+  if (!profile || !profile.is_active) {
     res.status(403);
     throw new Error("Account has been deactivated. Contact support.");
   }
 
-  const token = generateToken(user._id);
-
   sendSuccess(res, 200, "Login successful", {
-    token,
+    token: data.session.access_token,
     user: {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+      id: profile.id,
+      name: profile.name,
+      email: profile.email,
+      role: profile.role,
+      avatar_url: profile.avatar_url
+    }
   });
 });
 
@@ -86,19 +105,44 @@ export const getProfile = asyncHandler(async (req, res) => {
 //  @access  Private
 // ============================================================
 export const updateProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("+password");
+  const { name, avatar_url, password } = req.body;
+  const userId = req.user.id;
 
-  const { name, email, password } = req.body;
-  if (name) user.name = name;
-  if (email) user.email = email;
-  if (password) user.password = password; // pre-save hook will hash
+  // 1. Update Profile (Public Table)
+  const updates = {};
+  if (name) updates.name = name;
+  if (avatar_url) updates.avatar_url = avatar_url;
 
-  const updated = await user.save();
+  if (Object.keys(updates).length > 0) {
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("id", userId);
+    
+    if (profileError) {
+      res.status(400);
+      throw new Error("Profile update failed: " + profileError.message);
+    }
+  }
 
-  sendSuccess(res, 200, "Profile updated", {
-    _id: updated._id,
-    name: updated.name,
-    email: updated.email,
-    role: updated.role,
-  });
+  // 2. Update Auth (Password/Metadata)
+  if (password || name) {
+    const authUpdate = {};
+    if (password) authUpdate.password = password;
+    if (name) authUpdate.data = { name };
+
+    const { error: authError } = await supabase.auth.updateUser(authUpdate);
+    if (authError) {
+      res.status(400);
+      throw new Error("Auth update failed: " + authError.message);
+    }
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  sendSuccess(res, 200, "Profile updated", profile);
 });

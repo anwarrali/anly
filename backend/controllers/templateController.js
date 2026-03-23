@@ -1,11 +1,10 @@
 /**
  * controllers/templateController.js
- * Public + Admin CRUD for website templates
+ * Supabase implementation for platform templates
  */
 
 import asyncHandler from "express-async-handler";
-import Template from "../models/Template.js";
-import Order from "../models/Order.js";
+import supabase from "../utils/supabase.js";
 import path from "path";
 import fs from "fs";
 import { sendSuccess } from "../utils/apiResponse.js";
@@ -18,26 +17,40 @@ import { sendSuccess } from "../utils/apiResponse.js";
 export const getTemplates = asyncHandler(async (req, res) => {
   const { category, search, page = 1, limit = 12, featured } = req.query;
 
-  const query = { isPublished: true };
-  if (category) query.category = category;
-  if (featured) query.isFeatured = true;
-  if (search) query.$text = { $search: search };
+  let query = supabase
+    .from("templates")
+    .select("*", { count: "exact" })
+    .eq("is_published", true);
 
-  const skip = (Number(page) - 1) * Number(limit);
-  const total = await Template.countDocuments(query);
+  if (category) {
+    query = query.eq("category", category);
+  }
+  if (featured === "true") {
+    query = query.eq("is_featured", true);
+  }
+  if (search) {
+    // Requires a text search index on 'title' and 'description'
+    query = query.textSearch("title_description", search);
+  }
 
-  const templates = await Template.find(query)
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(Number(limit))
-    .lean();
+  const from = (Number(page) - 1) * Number(limit);
+  const to = from + Number(limit) - 1;
+
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
 
   sendSuccess(res, 200, "Templates retrieved", {
-    templates,
+    templates: data || [],
     pagination: {
-      total,
+      total: count,
       page: Number(page),
-      pages: Math.ceil(total / Number(limit)),
+      pages: Math.ceil((count || 0) / Number(limit)),
     },
   });
 });
@@ -48,12 +61,18 @@ export const getTemplates = asyncHandler(async (req, res) => {
 //  @access  Public
 // ============================================================
 export const getTemplateById = asyncHandler(async (req, res) => {
-  const template = await Template.findById(req.params.id).lean();
-  if (!template) {
+  const { data, error } = await supabase
+    .from("templates")
+    .select("*")
+    .eq("id", req.params.id)
+    .single();
+
+  if (error || !data) {
     res.status(404);
     throw new Error("Template not found");
   }
-  sendSuccess(res, 200, "Template retrieved", template);
+
+  sendSuccess(res, 200, "Template retrieved", data);
 });
 
 // ============================================================
@@ -62,11 +81,18 @@ export const getTemplateById = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const createTemplate = asyncHandler(async (req, res) => {
-  const template = await Template.create({
-    ...req.body,
-    createdBy: req.user._id,
-  });
-  sendSuccess(res, 201, "Template created", template);
+  const { data, error } = await supabase
+    .from("templates")
+    .insert([{ ...req.body, created_by: req.user.id }])
+    .select()
+    .single();
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+
+  sendSuccess(res, 201, "Template created", data);
 });
 
 // ============================================================
@@ -75,15 +101,19 @@ export const createTemplate = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const updateTemplate = asyncHandler(async (req, res) => {
-  const template = await Template.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-  if (!template) {
-    res.status(404);
-    throw new Error("Template not found");
+  const { data, error } = await supabase
+    .from("templates")
+    .update(req.body)
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
   }
-  sendSuccess(res, 200, "Template updated", template);
+
+  sendSuccess(res, 200, "Template updated", data);
 });
 
 // ============================================================
@@ -92,11 +122,16 @@ export const updateTemplate = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const deleteTemplate = asyncHandler(async (req, res) => {
-  const template = await Template.findByIdAndDelete(req.params.id);
-  if (!template) {
-    res.status(404);
-    throw new Error("Template not found");
+  const { error } = await supabase
+    .from("templates")
+    .delete()
+    .eq("id", req.params.id);
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
   }
+
   sendSuccess(res, 200, "Template deleted");
 });
 
@@ -106,18 +141,35 @@ export const deleteTemplate = asyncHandler(async (req, res) => {
 //  @access  Admin
 // ============================================================
 export const toggleFeatured = asyncHandler(async (req, res) => {
-  const template = await Template.findById(req.params.id);
-  if (!template) {
+  // First get current status
+  const { data: current, error: getError } = await supabase
+    .from("templates")
+    .select("is_featured")
+    .eq("id", req.params.id)
+    .single();
+
+  if (getError) {
     res.status(404);
     throw new Error("Template not found");
   }
-  template.isFeatured = !template.isFeatured;
-  await template.save();
+
+  const { data, error } = await supabase
+    .from("templates")
+    .update({ is_featured: !current.is_featured })
+    .eq("id", req.params.id)
+    .select()
+    .single();
+
+  if (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+
   sendSuccess(
     res,
     200,
-    `Template ${template.isFeatured ? "featured" : "unfeatured"}`,
-    template,
+    `Template ${data.is_featured ? "featured" : "unfeatured"}`,
+    data,
   );
 });
 
@@ -127,31 +179,41 @@ export const toggleFeatured = asyncHandler(async (req, res) => {
 //  @access  Private (Paid users only)
 // ============================================================
 export const downloadTemplate = asyncHandler(async (req, res) => {
-  const template = await Template.findById(req.params.id);
+  const templateId = req.params.id;
 
-  if (!template) {
+  const { data: template, error: tplError } = await supabase
+    .from("templates")
+    .select("*")
+    .eq("id", templateId)
+    .single();
+
+  if (tplError || !template) {
     res.status(404);
     throw new Error("Template not found");
   }
 
   // Check if user has a paid order for this template
-  const order = await Order.findOne({
-    userId: req.user._id,
-    templateId: template._id,
-    paymentStatus: "paid",
-  });
+  const { data: order, error: orderError } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("user_id", req.user.id)
+    .eq("template_id", templateId)
+    .eq("payment_status", "paid")
+    .limit(1)
+    .maybeSingle();
 
   if (!order && req.user.role !== "admin") {
     res.status(403);
     throw new Error("You must purchase this template to download it.");
   }
 
-  if (!template.templateFile) {
+  if (!template.template_file_url) {
     res.status(404);
     throw new Error("No file uploaded for this template.");
   }
 
-  const filePath = path.resolve(template.templateFile);
+  // Handle local file vs Supabase storage (assuming legacy local path for now)
+  const filePath = path.resolve(template.template_file_url);
 
   if (!fs.existsSync(filePath)) {
     res.status(404);

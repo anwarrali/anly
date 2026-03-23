@@ -50,15 +50,12 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-lg group-hover:shadow-olive-200/50 transition-all">
-              <span className="text-primary-foreground text-sm font-bold">
-                A
-              </span>
+          <Link to="/" className="flex items-center gap-2 group relative" dir="ltr">
+            <div className="flex items-baseline flex-row font-black tracking-tighter text-2xl font-oswald">
+              <span className="text-primary transition-colors duration-300">See</span>
+              <span className="text-muted-foreground group-hover:text-primary transition-colors duration-300">V</span>
             </div>
-            <span className="text-xl font-bold text-foreground tracking-tight">
-              AN<span className="text-primary">LY</span>
-            </span>
+            <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-primary/50 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
           </Link>
 
           {/* Desktop Nav */}
@@ -95,7 +92,7 @@ export function Navbar() {
             {/* Language Toggle */}
             <button
               onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-foreground hover:text-primary hover:bg-muted transition-all border border-border"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium text-foreground hover:text-primary hover:bg-muted transition-all border border-border"
             >
               <Globe size={15} />
               <span>{lang === "en" ? "العربية" : "English"}</span>
@@ -106,7 +103,7 @@ export function Navbar() {
                 {isAdmin ? (
                   <Link
                     to="/admin"
-                    className="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 hover:shadow-lg transition-all"
+                    className="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-full hover:bg-red-700 hover:shadow-lg transition-all"
                   >
                     Admin Dashboard
                   </Link>
@@ -120,7 +117,7 @@ export function Navbar() {
                     </Link>
                     <Link
                       to="/order"
-                      className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-200"
+                      className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-200"
                     >
                       {t.nav.getStarted}
                     </Link>
@@ -128,7 +125,7 @@ export function Navbar() {
                 )}
                 <button
                   onClick={logout}
-                  className="ms-2 p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg"
+                  className="ms-2 p-2 text-gray-400 hover:text-red-600 transition-colors rounded-full"
                   title="Sign Out"
                 >
                   <LogOut size={18} />
@@ -144,7 +141,7 @@ export function Navbar() {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-200"
+                  className="px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-200"
                 >
                   Get Started
                 </Link>
@@ -157,13 +154,13 @@ export function Navbar() {
             <ThemeToggle />
             <button
               onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+              className="p-2 rounded-full text-foreground hover:bg-muted transition-colors"
             >
               <Globe size={18} />
             </button>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+              className="p-2 rounded-full text-foreground hover:bg-muted transition-colors"
             >
               {isOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -179,7 +176,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                className={`block px-4 py-3 rounded-full text-sm font-medium transition-colors ${
                   isActive(link.href)
                     ? "text-primary bg-primary/10"
                     : "text-foreground hover:bg-muted"
@@ -195,7 +192,7 @@ export function Navbar() {
                     <Link
                       to="/admin"
                       onClick={() => setIsOpen(false)}
-                      className="block px-4 py-3 rounded-xl text-sm font-semibold text-center bg-red-600 text-white"
+                      className="block px-4 py-3 rounded-full text-sm font-semibold text-center bg-red-600 text-white"
                     >
                       Admin Dashboard
                     </Link>
@@ -204,14 +201,14 @@ export function Navbar() {
                       <Link
                         to="/dashboard"
                         onClick={() => setIsOpen(false)}
-                        className="block px-4 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted"
+                        className="block px-4 py-3 rounded-full text-sm font-medium text-foreground hover:bg-muted"
                       >
                         {t.nav.dashboard}
                       </Link>
                       <Link
                         to="/order"
                         onClick={() => setIsOpen(false)}
-                        className="block px-4 py-3 text-center bg-primary text-primary-foreground text-sm font-semibold rounded-xl"
+                        className="block px-4 py-3 text-center bg-primary text-primary-foreground text-sm font-semibold rounded-full"
                       >
                         {t.nav.getStarted}
                       </Link>
@@ -222,7 +219,7 @@ export function Navbar() {
                       logout();
                       setIsOpen(false);
                     }}
-                    className="block w-full text-start px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50"
+                    className="block w-full text-start px-4 py-3 rounded-full text-sm font-medium text-red-600 hover:bg-red-50"
                   >
                     Sign Out
                   </button>
@@ -232,14 +229,14 @@ export function Navbar() {
                   <Link
                     to="/login"
                     onClick={() => setIsOpen(false)}
-                    className="block px-4 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted text-center"
+                    className="block px-4 py-3 rounded-full text-sm font-medium text-foreground hover:bg-muted text-center"
                   >
                     Log In
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setIsOpen(false)}
-                    className="block px-4 py-3 text-center bg-primary text-primary-foreground text-sm font-semibold rounded-xl"
+                    className="block px-4 py-3 text-center bg-primary text-primary-foreground text-sm font-semibold rounded-full"
                   >
                     Get Started
                   </Link>
