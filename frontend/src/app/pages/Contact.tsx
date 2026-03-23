@@ -95,7 +95,7 @@ export default function Contact() {
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                 {t.contactExtra.badge}
               </div>
-              <h1 className="text-5xl sm:text-7xl font-black text-foreground mb-8 tracking-tighter leading-none">
+              <h1 className="text-4xl sm:text-7xl font-black text-foreground mb-6 sm:mb-8 tracking-tighter leading-none">
                 {t.contact.title}{" "}
                 <span className="text-primary italic">{t.contact.titleHighlight}</span>
               </h1>
@@ -108,20 +108,20 @@ export default function Contact() {
                   <a
                     key={i}
                     href={item.href}
-                    className="group flex items-center gap-6 p-6 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300"
+                    className="group flex items-center gap-4 sm:gap-6 p-4 sm:p-6 rounded-3xl bg-card border border-border hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-300 w-full overflow-hidden"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all duration-300">
-                      <item.icon size={24} />
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-all duration-300 shrink-0">
+                      <item.icon size={20} className="sm:w-6 sm:h-6" />
                     </div>
-                    <div>
-                      <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1.5 group-hover:text-primary transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1 sm:mb-1.5 group-hover:text-primary transition-colors truncate">
                         {item.label}
                       </div>
-                      <div className="text-xl font-bold text-foreground">
+                      <div className="text-base sm:text-xl font-bold text-foreground truncate">
                         {item.value}
                       </div>
                     </div>
-                    <ArrowUpRight className={`ml-auto ${lang === 'ar' ? 'mr-auto' : ''} text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all`} size={20} />
+                    <ArrowUpRight className={`ml-auto ${lang === 'ar' ? 'mr-auto' : ''} shrink-0 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all w-4 h-4 sm:w-5 sm:h-5`} />
                   </a>
                 ))}
               </div>
@@ -146,9 +146,9 @@ export default function Contact() {
             </div>
 
             {/* Form Side */}
-            <div data-aos="fade-left" data-aos-delay="200" className="relative group/form">
-              <div className="absolute inset-x-0 -inset-y-4 bg-primary/5 rounded-[3rem] blur-3xl opacity-0 group-hover/form:opacity-100 transition-opacity duration-1000" />
-              <div className="bg-card border border-border p-8 sm:p-12 rounded-[3.5rem] shadow-2xl relative z-10">
+            <div data-aos="fade-left" data-aos-delay="200" className="relative group/form w-full">
+              <div className="absolute inset-x-0 -inset-y-4 bg-primary/5 rounded-3xl sm:rounded-[3rem] blur-2xl sm:blur-3xl opacity-0 group-hover/form:opacity-100 transition-opacity duration-1000" />
+              <div className="bg-card border border-border p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[3.5rem] shadow-2xl relative z-10 overflow-hidden w-full">
                 {status === "success" ? (
                   <div className="py-20 text-center animate-in zoom-in duration-500">
                     <div className="w-24 h-24 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-10 border border-green-500/20">
@@ -233,9 +233,9 @@ export default function Contact() {
                         <textarea
                           required
                           name="message"
-                          rows={5}
+                          rows={4}
                           placeholder={t.contactExtra.messagePlaceholder}
-                          className="w-full bg-background border border-border p-6 text-sm rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium resize-none shadow-sm"
+                          className="w-full bg-background border border-border p-5 text-sm rounded-[1.5rem] sm:rounded-[2rem] focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-medium resize-none shadow-sm"
                         />
                       </div>
 

@@ -299,16 +299,13 @@ export default function Home() {
 
           {!activePath ? (
             <>
-              <div className="md:hidden flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-6 animate-pulse select-none w-full">
-                {t.homeExtra.swipe} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
-              </div>
-              <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-8 md:gap-12 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 pb-12 md:pb-0 px-4 md:px-0">
                 {t.services.options.map((opt, i) => (
                   <div
                     key={opt.id}
                     data-aos="fade-up"
                     data-aos-delay={i * 100}
-                    className="group relative p-10 md:p-12 rounded-[3.5rem] md:rounded-[4rem] bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-4xl hover:-translate-y-4 w-[85vw] md:w-auto flex-shrink-0 snap-center"
+                    className="group relative p-8 md:p-12 rounded-[3.5rem] md:rounded-[4rem] bg-card border border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-4xl hover:-translate-y-4 w-full"
                   >
                     <div className="w-20 h-20 md:w-24 md:h-24 rounded-[2rem] md:rounded-[2.5rem] bg-primary text-primary-foreground flex items-center justify-center mb-8 md:mb-10 shadow-glow group-hover:scale-110 transition-transform duration-500">
                       {opt.id === "template" && <Grid3X3 size={40} />}

@@ -49,7 +49,7 @@ export function Footer() {
               {[
                 { label: t.footer.links.templates, href: "/templates" },
                 { label: t.footer.links.services, href: "/services" },
-                { label: t.footer.links.pricing, href: "/#pricing" },
+                { label: t.footer.links.pricing, href: "/services" },
               ].map(({ label, href }) => (
                 <li key={label}>
                   <Link
