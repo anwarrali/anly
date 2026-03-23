@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import { useAuth } from "../context/AuthContext";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 
 type AdminTab = "overview" | "templates" | "orders" | "users" | "settings";
 
@@ -147,10 +147,15 @@ export default function Admin() {
   const handleSaveProfile = async () => {
     try {
       setSavingSettings(true);
-      await api.put("/auth/profile", profile);
+      if (profile.name) {
+        await supabase.auth.updateUser({ data: { name: profile.name } });
+      }
+      if (profile.password) {
+        await supabase.auth.updateUser({ password: profile.password });
+      }
       alert("Admin profile updated successfully!");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to update profile");
+      alert(err.message || "Failed to update profile");
     } finally {
       setSavingSettings(false);
     }
@@ -159,7 +164,7 @@ export default function Admin() {
   const handleUpdateOrderStatus = async (id: string, newStatus: string) => {
     try {
       if (!window.confirm("Update order status?")) return;
-      await api.put(`/orders/${id}`, { status: newStatus });
+      await supabase.from('orders').update({ status: newStatus }).eq('id', id);
       fetchData();
     } catch (err: any) {
       alert("Failed to update status");
@@ -170,7 +175,7 @@ export default function Admin() {
     try {
       if (!window.confirm("Are you sure you want to delete this template?"))
         return;
-      await api.delete(`/templates/${id}`);
+      await supabase.from('templates').delete().eq('id', id);
       fetchData();
     } catch (err: any) {
       alert("Failed to delete template");
@@ -178,13 +183,7 @@ export default function Admin() {
   };
 
   const handleDeleteUser = async (id: string) => {
-    try {
-      if (!window.confirm("Delete this user?")) return;
-      await api.delete(`/admin/users/${id}`);
-      fetchData();
-    } catch (err: any) {
-      alert("Failed to delete user");
-    }
+    alert("User deletion not available directly from frontend currently.");
   };
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,12 +194,14 @@ export default function Admin() {
 
     try {
       setIsUploading(true);
-      const res = await api.post("/templates/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setTemplateForm((prev) => ({ ...prev, image_url: res.data.data.url }));
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { data, error } = await supabase.storage.from('templates').upload(fileName, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('templates').getPublicUrl(fileName);
+      setTemplateForm((prev) => ({ ...prev, image_url: publicUrl }));
     } catch (err: any) {
       alert("Failed to upload image");
+      console.error(err);
     } finally {
       setIsUploading(false);
     }
@@ -215,10 +216,11 @@ export default function Admin() {
         formData.append("image", file);
         try {
           setIsUploading(true);
-          const res = await api.post("/templates/upload", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          setTemplateForm((prev) => ({ ...prev, image_url: res.data.data.url }));
+          const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const { data, error } = await supabase.storage.from('templates').upload(fileName, file);
+          if (error) throw error;
+          const { data: { publicUrl } } = supabase.storage.from('templates').getPublicUrl(fileName);
+          setTemplateForm((prev) => ({ ...prev, image_url: publicUrl }));
         } catch (err: any) {
           alert("Failed to upload pasted image");
         } finally {
@@ -241,18 +243,16 @@ export default function Admin() {
 
     try {
       setIsUploadingZip(true);
-      const formData = new FormData();
-      formData.append("file", file);
+      const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const { data, error } = await supabase.storage.from('templates').upload(fileName, file);
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('templates').getPublicUrl(fileName);
 
-      const res = await api.post("/templates/upload-zip", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setTemplateForm((prev) => ({ ...prev, template_file_url: res.data.data.path }));
+      setTemplateForm((prev) => ({ ...prev, template_file_url: publicUrl }));
       alert("ZIP file uploaded successfully!");
     } catch (err: any) {
       console.error("ZIP upload failed", err);
-      alert(err.response?.data?.message || "Failed to upload ZIP file");
+      alert(err.message || "Failed to upload ZIP file");
     } finally {
       setIsUploadingZip(false);
     }
@@ -288,18 +288,17 @@ export default function Admin() {
 
     try {
       if (editingTemplate) {
-        await api.put(
-          `/templates/${editingTemplate._id || editingTemplate.id}`,
-          payload,
-        );
+        const { error } = await supabase.from('templates').update(payload).eq('id', editingTemplate.id || editingTemplate._id);
+        if (error) throw error;
       } else {
-        await api.post("/templates", payload);
+        const { error } = await supabase.from('templates').insert([payload]);
+        if (error) throw error;
       }
       setTemplateModalOpen(false);
       fetchData();
     } catch (err: any) {
       console.error("Save template failed", err);
-      alert(err.response?.data?.message || "Failed to save template");
+      alert(err.message || "Failed to save template");
     }
   };
 
@@ -362,40 +361,35 @@ export default function Admin() {
     try {
       setLoading(true);
       setErrorMsg("");
-      const [statsRes, usersRes, templatesRes, ordersRes] = await Promise.all([
-        api.get("/admin/stats"),
-        api.get("/admin/users"),
-        api.get("/templates"),
-        api.get("/orders"),
+      const [templatesRes, ordersRes] = await Promise.all([
+        supabase.from('templates').select('*'),
+        supabase.from('orders').select('*'),
       ]);
-      const st = statsRes.data.data || {};
+      const templatesList = templatesRes.data || [];
+      const ordersList = ordersRes.data || [];
+
+      let totalRevenue = 0;
+      ordersList.forEach((o: any) => {
+        if (o.status !== 'cancelled') {
+          totalRevenue += Number(o.amount || 0);
+        }
+      });
+
       setStats({
-        revenue: `${st.revenue || 0}`,
-        orders: st.totalOrders || 0,
-        users: st.totalUsers || 0,
-        templates: st.totalTemplates || 0,
+        revenue: `$${totalRevenue}`,
+        orders: ordersList.length,
+        users: 0, // Not fetching users
+        templates: templatesList.length,
         revenueChange: "+0%",
         ordersChange: "+0%",
         usersChange: "+0%",
         templatesChange: "+0%",
       });
-      setUsers(
-        Array.isArray(usersRes.data?.data?.users)
-          ? usersRes.data.data.users
-          : [],
-      );
-      setTemplates(
-        Array.isArray(templatesRes.data?.data?.templates)
-          ? templatesRes.data.data.templates
-          : [],
-      );
-      setOrders(
-        Array.isArray(ordersRes.data?.data?.orders)
-          ? ordersRes.data.data.orders
-          : [],
-      );
+      setUsers([]);
+      setTemplates(templatesList);
+      setOrders(ordersList);
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || "Failed to load admin data");
+      setErrorMsg(err.message || "Failed to load admin data");
     } finally {
       setLoading(false);
     }
@@ -527,13 +521,14 @@ export default function Admin() {
                       })
                     }
                   >
-                    <option value="business">{t.admin.categories.business}</option>
-                    <option value="portfolio">{t.admin.categories.portfolio}</option>
-                    <option value="ecommerce">{t.admin.categories.ecommerce}</option>
-                    <option value="blog">{t.admin.categories.blog}</option>
-                    <option value="landing">{t.admin.categories.landing}</option>
-                    <option value="restaurant">{t.admin.categories.restaurant}</option>
-                    <option value="other">{t.admin.categories.other}</option>
+                    <option className="bg-background text-foreground" value="business">{t.admin.categories.business}</option>
+                    <option className="bg-background text-foreground" value="portfolio">{t.admin.categories.portfolio}</option>
+                    <option className="bg-background text-foreground" value="ecommerce">{t.admin.categories.ecommerce}</option>
+                    <option className="bg-background text-foreground" value="blog">{t.admin.categories.blog}</option>
+                    <option className="bg-background text-foreground" value="restaurant">{t.admin.categories.restaurant}</option>
+                    <option className="bg-background text-foreground" value="realEstate">Real Estate</option>
+                    <option className="bg-background text-foreground" value="health">Health & Medical</option>
+                    <option className="bg-background text-foreground" value="other">{t.admin.categories.other}</option>
                   </select>
                   <div className={`absolute top-1/2 -translate-y-1/2 pointer-events-none text-primary ${lang === 'ar' ? 'left-4' : 'right-4'}`}>
                     <ChevronDown size={14} />
@@ -1450,7 +1445,7 @@ export default function Admin() {
                                   className="text-xs bg-background border border-border rounded-lg px-2 py-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground focus:outline-none cursor-pointer hover:border-indigo-300 transition-colors"
                                 >
                                   {Object.keys(statusConfig).map((k) => (
-                                    <option key={k} value={k}>
+                                    <option className="bg-background text-foreground" key={k} value={k}>
                                       {statusConfig[k].label}
                                     </option>
                                   ))}

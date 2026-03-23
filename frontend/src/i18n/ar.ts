@@ -82,11 +82,9 @@ export const ar: Translations = {
       portfolio: "معرض أعمال",
       ecommerce: "تجارة إلكترونية",
       blog: "مدونة",
-      landing: "صفحة هبوط",
-      restaurant: "مطعم",
+      restaurant: "مطاعم ومقاهي",
       realEstate: "عقارات",
       health: "صحة وطب",
-      saas: "متجر تطبيقات SaaS",
     },
     sortBy: {
       newest: "الأحدث أولاً",

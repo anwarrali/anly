@@ -7,7 +7,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 import { motion } from "motion/react";
 
 type Category =
@@ -17,10 +17,8 @@ type Category =
   | "restaurant"
   | "portfolio"
   | "blog"
-  | "landing"
   | "realEstate"
-  | "health"
-  | "saas";
+  | "health";
 
 export default function Templates() {
   const { t, lang } = useI18n();
@@ -41,8 +39,8 @@ export default function Templates() {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/templates");
-      const list = res.data?.data?.templates || res.data?.data || [];
+      const { data: list, error } = await supabase.from('templates').select('*');
+      if (error) throw error;
       setDbTemplates(Array.isArray(list) ? list : []);
       setTimeout(() => AOS.refresh(), 100);
     } catch (err) {
@@ -54,7 +52,7 @@ export default function Templates() {
 
   const filtered = dbTemplates
     .filter((tpl) => {
-      const matchCat = category === "all" || tpl.category === category;
+      const matchCat = category === "all" || (tpl.category || "").toLowerCase() === category.toLowerCase();
       const tplName = (tpl.title || tpl.name || "").toLowerCase();
       const matchSearch = search === "" || tplName.includes(search.toLowerCase());
       return matchCat && matchSearch;
@@ -72,7 +70,9 @@ export default function Templates() {
     { key: "business", label: t.templates.categories.business },
     { key: "ecommerce", label: t.templates.categories.ecommerce },
     { key: "restaurant", label: t.templates.categories.restaurant },
-    { key: "landing", label: t.templates.categories.landing },
+    { key: "blog", label: t.templates.categories.blog || "Blog" },
+    { key: "realEstate", label: t.templates.categories.realEstate || "Real Estate" },
+    { key: "health", label: t.templates.categories.health || "Health" },
   ];
 
 
@@ -133,12 +133,12 @@ export default function Templates() {
                <select 
                  value={sortBy} 
                  onChange={(e) => setSortBy(e.target.value as any)}
-                 className={`w-full lg:w-64 bg-background-secondary border border-border ${lang === 'ar' ? 'pl-8 pr-12' : 'pl-12 pr-8'} py-4 text-[10px] font-black uppercase tracking-[0.2em] text-foreground focus:outline-none focus:border-accent rounded-full appearance-none hover:border-accent transition-all cursor-pointer shadow-sm`}
+                 className={`w-full lg:w-64 bg-card border border-border ${lang === 'ar' ? 'pl-8 pr-12' : 'pl-12 pr-8'} py-4 text-[10px] font-black uppercase tracking-[0.2em] text-foreground focus:outline-none focus:border-accent rounded-full appearance-none hover:border-accent transition-all cursor-pointer shadow-sm`}
                >
-                 <option value="newest">{t.templates.sortBy.newest}</option>
-                 <option value="popular">{t.templates.sortBy.popular}</option>
-                 <option value="price-low">{t.templates.sortBy.priceLow}</option>
-                 <option value="price-high">{t.templates.sortBy.priceHigh}</option>
+                 <option className="bg-background text-foreground" value="newest">{t.templates.sortBy.newest}</option>
+                 <option className="bg-background text-foreground" value="popular">{t.templates.sortBy.popular}</option>
+                 <option className="bg-background text-foreground" value="price-asc">{t.templates.sortBy.priceLow}</option>
+                 <option className="bg-background text-foreground" value="price-desc">{t.templates.sortBy.priceHigh}</option>
                </select>
                <div className={`absolute ${lang === 'ar' ? 'left-6' : 'right-6'} top-1/2 -translate-y-1/2 pointer-events-none text-primary`}>
                  <ChevronDown size={14} />
@@ -177,8 +177,11 @@ export default function Templates() {
                   />
                   
                   {/* Gradient Overlay & Title */}
-                  <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-10 flex flex-col justify-end">
-                    <h3 className="text-xs sm:text-xl font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-1 mb-0.5 sm:mb-2">
+                  <div className="absolute inset-x-0 bottom-0 min-h-[50%] bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 sm:p-6 lg:p-8 flex flex-col justify-end">
+                    <h3 
+                      className="text-xs sm:text-base lg:text-xl font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-2 md:line-clamp-3 mb-1 sm:mb-2 leading-tight"
+                      title={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
+                    >
                       {lang === 'ar' 
                         ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title || tpl.name) 
                         : (tpl.title || tpl.name)}

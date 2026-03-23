@@ -18,7 +18,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 
 type Step = 1 | 2 | 3;
 
@@ -84,8 +84,8 @@ export default function Order() {
 
   const fetchTemplates = async () => {
     try {
-      const res = await api.get("/templates");
-      const list = res.data?.data?.templates || res.data?.data || [];
+      const { data: list, error } = await supabase.from('templates').select('*');
+      if (error) throw error;
       setDbTemplates(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Failed to fetch templates", err);
@@ -122,10 +122,15 @@ export default function Order() {
       setLoading(true);
       const isPaid = (form.serviceType === "direct_purchase" || form.serviceType === "template_purchase") && getPrice() > 0;
 
+      const { data: sessionData } = await supabase.auth.getUser();
+      const userId = sessionData?.user?.id;
+
       const payload = {
         templateId: form.templateId || null,
         serviceType: `${form.serviceType}_${form.planId}`.replace(/_$/, ''),
         amount: getPrice(),
+        status: 'pending',
+        user_id: userId || null,
         siteData: {
           businessName: form.company,
           websiteGoal: form.description,
@@ -133,8 +138,8 @@ export default function Order() {
         },
       };
 
-      const res = await api.post("/orders", payload);
-      const order = res.data.data;
+      const { data: order, error } = await supabase.from("orders").insert([payload]).select().single();
+      if (error) throw error;
 
       // Email notification via FormSubmit (Background)
       fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
@@ -158,19 +163,10 @@ export default function Order() {
         }),
       }).catch(err => console.error("Email notify failed", err));
 
-      if (isPaid) {
-        // Redirect to Paymob
-        const payRes = await api.post(`/payments/checkout/${order._id || order.id}`);
-        if (payRes.data.data.url) {
-          window.location.href = payRes.data.data.url;
-          return;
-        }
-      }
-
       setSubmitted(true);
     } catch (err: any) {
       console.error("Order failed", err);
-      alert(err.response?.data?.message || "Submission failed. Please try again.");
+      alert(err.message || "Submission failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -244,20 +240,20 @@ export default function Order() {
                   </div>
                   <div className="space-y-2">
                     <label className={`text-[10px] font-black text-primary uppercase tracking-[0.3em] ${lang === 'ar' ? 'mr-1' : 'ml-1'}`}>{t.order.form.labels.timeline}</label>
-                    <select value={form.timeline} onChange={e=>update('timeline', e.target.value)} className="w-full bg-background border border-border p-5 text-sm rounded-2xl focus:border-accent outline-none transition-all font-medium appearance-none">
-                       <option value="">{t.order.form.placeholders.timeline}</option>
-                       <option value="asap">ASAP / بأسرع وقت</option>
-                       <option value="1-month">1 Month / شهر واحد</option>
-                       <option value="flexible">Flexible / مرن</option>
+                    <select value={form.timeline} onChange={e=>update('timeline', e.target.value)} className={`w-full bg-background border border-border p-5 text-sm rounded-2xl focus:border-accent outline-none transition-all font-medium appearance-none ${lang === 'ar' ? 'pl-5 pr-5' : 'pl-5 pr-5'}`}>
+                       <option className="bg-background text-foreground" value="">{t.order.form.placeholders.timeline}</option>
+                       <option className="bg-background text-foreground" value="asap">ASAP / بأسرع وقت</option>
+                       <option className="bg-background text-foreground" value="1-month">1 Month / شهر واحد</option>
+                       <option className="bg-background text-foreground" value="flexible">Flexible / مرن</option>
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className={`text-[10px] font-black text-primary uppercase tracking-[0.3em] ${lang === 'ar' ? 'mr-1' : 'ml-1'}`}>{t.order.form.labels.budget}</label>
-                    <select value={form.budget} onChange={e=>update('budget', e.target.value)} className="w-full bg-background border border-border p-5 text-sm rounded-2xl focus:border-accent outline-none transition-all font-medium appearance-none">
-                       <option value="">{t.order.form.placeholders.budget}</option>
-                       <option value="<500">{lang === 'ar' ? 'تحت ٥٠٠ دولار' : 'Under $500'}</option>
-                       <option value="500-1500">$500 - $1,500</option>
-                       <option value="1500+">$1,500+</option>
+                    <select value={form.budget} onChange={e=>update('budget', e.target.value)} className={`w-full bg-background border border-border p-5 text-sm rounded-2xl focus:border-accent outline-none transition-all font-medium appearance-none ${lang === 'ar' ? 'pl-5 pr-5' : 'pl-5 pr-5'}`}>
+                       <option className="bg-background text-foreground" value="">{t.order.form.placeholders.budget}</option>
+                       <option className="bg-background text-foreground" value="<500">{lang === 'ar' ? 'تحت ٥٠٠ دولار' : 'Under $500'}</option>
+                       <option className="bg-background text-foreground" value="500-1500">$500 - $1,500</option>
+                       <option className="bg-background text-foreground" value="1500+">$1,500+</option>
                     </select>
                   </div>
                 </div>

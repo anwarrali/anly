@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 import {
   Package,
   Clock,
@@ -56,13 +56,18 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/orders/my-orders");
-      const list = res.data?.data?.orders || res.data?.data || [];
-      setOrders(Array.isArray(list) ? list : []);
+      if (!user?.id) return;
+      const { data, error: fetchError } = await supabase
+        .from('orders')
+        .select(`*`)
+        .eq('user_id', user.id);
+      
+      if (fetchError) throw fetchError;
+      setOrders(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error("Dashboard error:", err);
       setError(
-        err.response?.data?.message ||
+        err.message ||
           "Failed to retrieve operational data from the nexus."
       );
     } finally {

@@ -85,11 +85,9 @@ export const en = {
       portfolio: "Portfolio",
       ecommerce: "E-Commerce",
       blog: "Blog",
-      landing: "Landing Page",
-      restaurant: "Restaurant",
+      restaurant: "Restaurants & Cafes",
       realEstate: "Real Estate",
       health: "Health & Medical",
-      saas: "SaaS",
     },
     sortBy: {
       newest: "Newest First",

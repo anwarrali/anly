@@ -22,7 +22,7 @@ import {
   Download,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 
 const featureIcons = [Zap, Globe, Shield, Headphones, Search, Smartphone];
 
@@ -41,8 +41,8 @@ export default function Home() {
 
   const fetchTemplates = async () => {
     try {
-      const res = await api.get("/templates");
-      const list = res.data?.data?.templates || res.data?.data || [];
+      const { data: list, error } = await supabase.from('templates').select('*');
+      if (error) throw error;
       const templatesArray = Array.isArray(list) ? list : [];
       setDbTemplates(templatesArray);
       setTimeout(() => AOS.refresh(), 100);
@@ -214,8 +214,18 @@ export default function Home() {
                       />
                       
                       {/* Gradient Overlay & Title */}
-                      <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-3 sm:p-6 md:p-8 flex flex-col justify-end">
-                        <h3 className="text-xs sm:text-lg md:text-xl font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-1 mb-0.5 sm:mb-1">
+                      <div className="absolute inset-x-0 bottom-0 min-h-[50%] bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 sm:p-6 md:p-8 flex flex-col justify-end">
+                        <h3 
+                          className="text-xs sm:text-lg md:text-xl font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-2 md:line-clamp-3 mb-1 sm:mb-1.5 leading-tight"
+                          title={lang === "ar"
+                            ? tpl.title_ar ||
+                              tpl.name_ar ||
+                              tpl.titleAr ||
+                              tpl.nameAr ||
+                              tpl.title ||
+                              tpl.name
+                            : tpl.title || tpl.name}
+                        >
                           {lang === "ar"
                             ? tpl.title_ar ||
                               tpl.name_ar ||

@@ -12,7 +12,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
-import api from "../../utils/api";
+import supabase from "../../utils/supabase";
 import { TemplatePreview } from "../components/ui/TemplatePreview";
 import { AnimatePresence } from "motion/react";
 
@@ -34,13 +34,13 @@ export default function TemplateDetail() {
     try {
       setLoading(true);
       const [tplRes, allRes] = await Promise.all([
-        api.get(`/templates/${id}`),
-        api.get("/templates"),
+        supabase.from('templates').select('*').eq('id', id).single(),
+        supabase.from('templates').select('*'),
       ]);
-      const current = tplRes.data?.data || null;
+      const current = tplRes.data || null;
       setTemplate(current);
 
-      const all = allRes.data?.data?.templates || allRes.data?.data || [];
+      const all = allRes.data || [];
       const related = all
         .filter(
           (tpl: any) =>
@@ -412,8 +412,11 @@ export default function TemplateDetail() {
                     />
                     
                     {/* Gradient Overlay & Title */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
-                      <h3 className="text-lg font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-1">
+                    <div className="absolute inset-x-0 bottom-0 min-h-[50%] bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 flex flex-col justify-end">
+                      <h3 
+                        className="text-lg font-black text-white group-hover:text-primary transition-colors tracking-tight line-clamp-2 md:line-clamp-3 leading-tight"
+                        title={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
+                      >
                         {lang === 'ar' 
                           ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title || tpl.name) 
                           : (tpl.title || tpl.name)}
