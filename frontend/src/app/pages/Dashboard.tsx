@@ -28,14 +28,13 @@ import {
 import { useI18n } from "../../i18n";
 
 interface Order {
-  _id: string;
-  id?: string;
-  templateId?: { _id: string; title: string; titleAr: string };
-  serviceType: string;
+  id: string;
+  template_id?: string | { id: string; title: string; titleAr?: string };
+  service_type: string;
   status: string;
+  payment_status: string;
   amount: number;
-  createdAt: string;
-  siteData?: any;
+  created_at: string;
 }
 
 export default function Dashboard() {
@@ -46,21 +45,29 @@ export default function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "settings">(
-    "overview"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "orders" | "settings"
+  >("overview");
   const [error, setError] = useState("");
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       if (!user?.id) return;
-      
+
       const [ordersRes, contactsRes] = await Promise.all([
-        supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('contacts').select('*').eq('email', user.email).order('created_at', { ascending: false })
+        supabase
+          .from("orders")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("contacts")
+          .select("*")
+          .eq("email", user.email)
+          .order("created_at", { ascending: false }),
       ]);
-      
+
       setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
       setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
     } catch (err: any) {
@@ -74,7 +81,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchDashboardData();
   }, [user?.id]);
-
 
   const handleLogout = async () => {
     await logout();
@@ -110,14 +116,17 @@ export default function Dashboard() {
           <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
         <div className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground animate-pulse">
-           {t.auth.initializing}
+          {t.auth.initializing}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-12" dir={lang === "ar" ? "rtl" : "ltr"}>
+    <div
+      className="min-h-screen bg-background pt-24 pb-12"
+      dir={lang === "ar" ? "rtl" : "ltr"}
+    >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-[280px_1fr] gap-10">
           {/* Sidebar */}
@@ -126,7 +135,7 @@ export default function Dashboard() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors" />
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-14 h-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center font-black text-xl shadow-lg shadow-primary/20">
-                  {user?.name?.[0].toUpperCase() || "C"}
+                  {user?.name?.[0]?.toUpperCase() || "C"}
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-foreground tracking-tighter leading-none mb-1.5">
@@ -140,9 +149,21 @@ export default function Dashboard() {
 
               <nav className="space-y-2">
                 {[
-                  { id: "overview", label: t.dashboard.nav.overview, icon: Layers },
-                  { id: "orders", label: t.dashboard.nav.orders, icon: Database },
-                  { id: "settings", label: t.dashboard.nav.settings, icon: Settings },
+                  {
+                    id: "overview",
+                    label: t.dashboard.nav.overview,
+                    icon: Layers,
+                  },
+                  {
+                    id: "orders",
+                    label: t.dashboard.nav.orders,
+                    icon: Database,
+                  },
+                  {
+                    id: "settings",
+                    label: t.dashboard.nav.settings,
+                    icon: Settings,
+                  },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -160,6 +181,14 @@ export default function Dashboard() {
               </nav>
 
               <div className="mt-8 pt-8 border-t border-border">
+                {user?.role === "admin" && (
+                  <Link
+                    to="/admin"
+                    className="w-full flex items-center justify-center gap-3 p-4 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all mb-3 group shadow-lg"
+                  >
+                    <ShieldCheck size={16} /> Admin Dashboard
+                  </Link>
+                )}
                 <Link
                   to="/templates"
                   className="w-full flex items-center justify-center gap-3 p-4 bg-muted hover:bg-primary hover:text-primary-foreground text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl transition-all mb-3 group"
@@ -179,12 +208,17 @@ export default function Dashboard() {
             {/* Quick Stats Panel */}
             <div className="space-y-4">
               {stats.map((stat, i) => (
-                <div key={i} className="p-6 rounded-3xl bg-card border border-border/50 group hover:border-primary/30 transition-all">
+                <div
+                  key={i}
+                  className="p-6 rounded-3xl bg-card border border-border/50 group hover:border-primary/30 transition-all"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 rounded-xl bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center transition-colors">
                       <stat.icon size={18} />
                     </div>
-                    <div className="text-2xl font-black text-foreground">{stat.value}</div>
+                    <div className="text-2xl font-black text-foreground">
+                      {stat.value}
+                    </div>
                   </div>
                   <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest group-hover:text-primary transition-colors">
                     {stat.label}
@@ -206,14 +240,23 @@ export default function Dashboard() {
                 </p>
               </div>
               <div className="flex gap-4">
-                <Link to="/templates" className="px-8 py-4 bg-foreground text-background text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary hover:text-white transition-all shadow-xl group">
-                  {t.dashboard.actions.gallery} <ChevronRight size={14} className={`ml-1 inline ${lang === 'ar' ? 'rotate-180' : ''} group-hover:translate-x-1 transition-transform`} />
+                <Link
+                  to="/templates"
+                  className="px-8 py-4 bg-foreground text-background text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-primary hover:text-white transition-all shadow-xl group"
+                >
+                  {t.dashboard.actions.gallery}{" "}
+                  <ChevronRight
+                    size={14}
+                    className={`ml-1 inline ${lang === "ar" ? "rotate-180" : ""} group-hover:translate-x-1 transition-transform`}
+                  />
                 </Link>
               </div>
             </header>
 
             {error && (
-              <div className={`p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3 ${lang === 'ar' ? 'flex-row-reverse' : ''}`}>
+              <div
+                className={`p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3 ${lang === "ar" ? "flex-row-reverse" : ""}`}
+              >
                 <AlertCircle size={20} />
                 <span>{error}</span>
               </div>
@@ -228,9 +271,10 @@ export default function Dashboard() {
                     <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
                     <div className="relative z-10">
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-10 backdrop-blur-md">
-                        <Zap size={14} className="text-primary" /> {t.dashboard.overview.statusReport}
+                        <Zap size={14} className="text-primary" />{" "}
+                        {t.dashboard.overview.statusReport}
                       </div>
-                      
+
                       <div className="space-y-12">
                         {/* Orders Section */}
                         <div>
@@ -245,13 +289,16 @@ export default function Dashboard() {
                               </p>
                             ) : (
                               orders.slice(0, 2).map((order) => (
-                                <div key={order._id || order.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                                <div
+                                  key={order.id || order.id}
+                                  className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                                >
                                   <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                                       <Package size={18} />
                                     </div>
                                     <div className="text-sm font-black uppercase tracking-widest opacity-80">
-                                      {lang === 'ar' ? (order.templateId?.titleAr || order.templateId?.title || order.serviceType) : (order.templateId?.title || order.serviceType)}
+                                      {order.service_type || "N/A"}
                                     </div>
                                   </div>
                                   <div className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white/10 rounded-full border border-white/10">
@@ -266,7 +313,8 @@ export default function Dashboard() {
                         {/* Recent Contact Requests Section */}
                         <div>
                           <h3 className="text-3xl font-black tracking-tighter mb-4">
-                            {t.dashboard.overview.recentMails || "Contact Requests"}
+                            {t.dashboard.overview.recentMails ||
+                              "Contact Requests"}
                           </h3>
                           <div className="h-1 w-12 bg-primary mb-6" />
                           <div className="space-y-3">
@@ -276,7 +324,10 @@ export default function Dashboard() {
                               </p>
                             ) : (
                               contacts.slice(0, 2).map((c: any) => (
-                                <div key={c.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                                <div
+                                  key={c.id}
+                                  className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                                >
                                   <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
                                       <Mail size={18} />
@@ -286,7 +337,9 @@ export default function Dashboard() {
                                     </div>
                                   </div>
                                   <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
-                                    {new Date(c.created_at).toLocaleDateString()}
+                                    {new Date(
+                                      c.created_at,
+                                    ).toLocaleDateString()}
                                   </div>
                                 </div>
                               ))
@@ -295,7 +348,6 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-
                   </div>
 
                   {/* Quick Actions */}
@@ -304,26 +356,59 @@ export default function Dashboard() {
                       {t.dashboard.actions.shortcuts}
                     </h4>
                     <div className="grid gap-4">
-                      <Link to="/templates" className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all">
+                      <Link
+                        to="/templates"
+                        className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all"
+                      >
                         <div className="flex items-center gap-4">
-                          <Layout size={20} className="text-primary group-hover:text-primary-foreground" />
-                          <span className="text-sm font-black uppercase tracking-widest">{t.dashboard.actions.discover}</span>
+                          <Layout
+                            size={20}
+                            className="text-primary group-hover:text-primary-foreground"
+                          />
+                          <span className="text-sm font-black uppercase tracking-widest">
+                            {t.dashboard.actions.discover}
+                          </span>
                         </div>
-                        <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ArrowUpRight
+                          size={18}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
                       </Link>
-                      <button onClick={() => setActiveTab("orders")} className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all">
+                      <button
+                        onClick={() => setActiveTab("orders")}
+                        className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all"
+                      >
                         <div className="flex items-center gap-4">
-                          <Cpu size={20} className="text-primary group-hover:text-primary-foreground" />
-                          <span className="text-sm font-black uppercase tracking-widest">{t.dashboard.actions.initialize}</span>
+                          <Cpu
+                            size={20}
+                            className="text-primary group-hover:text-primary-foreground"
+                          />
+                          <span className="text-sm font-black uppercase tracking-widest">
+                            {t.dashboard.actions.initialize}
+                          </span>
                         </div>
-                        <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ArrowUpRight
+                          size={18}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
                       </button>
-                      <Link to="/services" className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all">
+                      <Link
+                        to="/services"
+                        className="flex items-center justify-between p-6 rounded-3xl bg-muted hover:bg-primary hover:text-primary-foreground group transition-all"
+                      >
                         <div className="flex items-center gap-4">
-                          <Layers size={20} className="text-primary group-hover:text-primary-foreground" />
-                          <span className="text-sm font-black uppercase tracking-widest">{t.dashboard.actions.scale}</span>
+                          <Layers
+                            size={20}
+                            className="text-primary group-hover:text-primary-foreground"
+                          />
+                          <span className="text-sm font-black uppercase tracking-widest">
+                            {t.dashboard.actions.scale}
+                          </span>
                         </div>
-                        <ArrowUpRight size={18} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ArrowUpRight
+                          size={18}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        />
                       </Link>
                     </div>
                   </div>
@@ -355,22 +440,34 @@ export default function Dashboard() {
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="bg-muted text-left border-b border-border">
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.id}
                           </th>
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.architecture}
                           </th>
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.state}
                           </th>
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.timestamp}
                           </th>
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.capital}
                           </th>
-                          <th className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === 'ar' ? 'text-right' : ''}`}>
+                          <th
+                            className={`p-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest ${lang === "ar" ? "text-right" : ""}`}
+                          >
                             {t.dashboard.orders.table.operations}
                           </th>
                         </tr>
@@ -378,15 +475,22 @@ export default function Dashboard() {
                       <tbody className="divide-y divide-border font-medium">
                         {orders.length === 0 ? (
                           <tr>
-                            <td colSpan={6} className="p-16 text-center text-muted-foreground opacity-50 uppercase tracking-widest text-xs font-black">
-                              No operational data found in current temporal window.
+                            <td
+                              colSpan={6}
+                              className="p-16 text-center text-muted-foreground opacity-50 uppercase tracking-widest text-xs font-black"
+                            >
+                              No operational data found in current temporal
+                              window.
                             </td>
                           </tr>
                         ) : (
                           orders.map((order) => (
-                            <tr key={order._id || order.id} className="hover:bg-muted/30 transition-colors">
+                            <tr
+                              key={order.id}
+                              className="hover:bg-muted/30 transition-colors"
+                            >
                               <td className="p-6 text-xs font-black text-primary uppercase tracking-tighter">
-                                {(order._id || order.id || "").slice(-8)}
+                                {(order.id || "").slice(-8)}
                               </td>
                               <td className="p-6">
                                 <div className="flex items-center gap-3">
@@ -394,21 +498,31 @@ export default function Dashboard() {
                                     <FileCode size={16} />
                                   </div>
                                   <span className="text-sm text-foreground">
-                                    {lang === 'ar' ? (order.templateId?.titleAr || order.templateId?.title || order.serviceType) : (order.templateId?.title || order.serviceType)}
+                                    {order.service_type || "N/A"}
                                   </span>
                                 </div>
                               </td>
                               <td className="p-6">
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                                  order.status === 'completed' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                  order.status === 'processing' || order.status === 'inProgress' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                  'bg-orange-500/10 text-orange-600 border-orange-500/20'
-                                }`}>
-                                  {t.dashboard.orders.statuses[order.status as keyof typeof t.dashboard.orders.statuses] || order.status}
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                    order.status === "completed"
+                                      ? "bg-green-500/10 text-green-600 border-green-500/20"
+                                      : order.status === "processing" ||
+                                          order.status === "inProgress" ||
+                                          order.status === "in_progress"
+                                        ? "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                                        : "bg-orange-500/10 text-orange-600 border-orange-500/20"
+                                  }`}
+                                >
+                                  {t.dashboard.orders.statuses[
+                                    order.status as keyof typeof t.dashboard.orders.statuses
+                                  ] || order.status}
                                 </span>
                               </td>
                               <td className="p-6 text-xs text-muted-foreground">
-                                {new Date(order.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  order.created_at,
+                                ).toLocaleDateString()}
                               </td>
                               <td className="p-6 text-sm font-black text-foreground">
                                 ${order.amount}
@@ -418,7 +532,12 @@ export default function Dashboard() {
                                   <button className="px-4 py-2 bg-muted text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-primary hover:text-white transition-all transform hover:scale-105">
                                     {t.dashboard.orders.extract}
                                   </button>
-                                  <button onClick={() => navigate(`/order-detail/${order._id || order.id}`)} className="px-4 py-2 border border-border text-[10px] font-black uppercase tracking-widest rounded-lg hover:border-primary transition-all">
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/order-detail/${order.id}`)
+                                    }
+                                    className="px-4 py-2 border border-border text-[10px] font-black uppercase tracking-widest rounded-lg hover:border-primary transition-all"
+                                  >
                                     {t.dashboard.orders.analyze}
                                   </button>
                                 </div>
@@ -446,54 +565,102 @@ export default function Dashboard() {
                     </p>
                   </div>
 
-                  <form className="space-y-10" onSubmit={(e) => { e.preventDefault(); alert(t.dashboard.settings.success); }}>
+                  <form
+                    className="space-y-10"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      alert(t.dashboard.settings.success);
+                    }}
+                  >
                     <div className="space-y-6">
-                       <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] pb-2 border-b border-border">
-                         {t.dashboard.settings.profileParams}
-                       </h4>
-                       <div className="grid sm:grid-cols-2 gap-8">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">{t.dashboard.settings.identity}</label>
-                            <input type="text" defaultValue={user?.name} className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">{t.dashboard.settings.comms}</label>
-                            <input type="email" defaultValue={user?.email} className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">{t.dashboard.settings.telecom}</label>
-                            <input type="tel" placeholder="+XX XXX XXX XXXX" className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">{t.dashboard.settings.corporate}</label>
-                            <input type="text" placeholder="Entity Name" className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium" />
-                          </div>
-                       </div>
+                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] pb-2 border-b border-border">
+                        {t.dashboard.settings.profileParams}
+                      </h4>
+                      <div className="grid sm:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            {t.dashboard.settings.identity}
+                          </label>
+                          <input
+                            type="text"
+                            defaultValue={user?.name}
+                            className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            {t.dashboard.settings.comms}
+                          </label>
+                          <input
+                            type="email"
+                            defaultValue={user?.email}
+                            className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            {t.dashboard.settings.telecom}
+                          </label>
+                          <input
+                            type="tel"
+                            placeholder="+XX XXX XXX XXXX"
+                            className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-primary font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            {t.dashboard.settings.corporate}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Entity Name"
+                            className="w-full bg-background border border-border p-4 text-sm rounded-xl focus:border-primary placeholder:opacity-30 transition-all font-medium"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-6 pt-6">
-                       <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] pb-2 border-b border-border">
-                         {t.dashboard.settings.sync}
-                       </h4>
-                        <div className="space-y-4">
-                          {[
-                            { id: 'marketing', title: t.dashboard.settings.strategic.title, sub: t.dashboard.settings.strategic.sub }
-                          ].map(item => (
-                            <div key={item.id} className="flex items-center justify-between p-6 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/10 transition-all">
-                               <div>
-                                  <p className="text-sm font-black uppercase tracking-widest text-foreground">{item.title}</p>
-                                  <p className="text-[10px] font-medium text-muted-foreground uppercase mt-1">{item.sub}</p>
-                               </div>
-                               <button type="button" className={`w-14 h-7 rounded-full relative transition-all duration-300 ${item.id === 'marketing' ? 'bg-primary shadow-glow-primary' : 'bg-border'}`}>
-                                  <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${item.id === 'marketing' ? (lang === 'ar' ? 'right-1 translate-x-0' : 'left-8') : (lang === 'ar' ? 'right-8' : 'left-1')}`} />
-                               </button>
+                      <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] pb-2 border-b border-border">
+                        {t.dashboard.settings.sync}
+                      </h4>
+                      <div className="space-y-4">
+                        {[
+                          {
+                            id: "marketing",
+                            title: t.dashboard.settings.strategic.title,
+                            sub: t.dashboard.settings.strategic.sub,
+                          },
+                        ].map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between p-6 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/10 transition-all"
+                          >
+                            <div>
+                              <p className="text-sm font-black uppercase tracking-widest text-foreground">
+                                {item.title}
+                              </p>
+                              <p className="text-[10px] font-medium text-muted-foreground uppercase mt-1">
+                                {item.sub}
+                              </p>
                             </div>
-                          ))}
-                        </div>
-
+                            <button
+                              type="button"
+                              className={`w-14 h-7 rounded-full relative transition-all duration-300 ${item.id === "marketing" ? "bg-primary shadow-glow-primary" : "bg-border"}`}
+                            >
+                              <div
+                                className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${item.id === "marketing" ? (lang === "ar" ? "right-1 translate-x-0" : "left-8") : lang === "ar" ? "right-8" : "left-1"}`}
+                              />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
-                    <button type="submit" className="px-12 py-5 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-foreground transition-all shadow-xl shadow-primary/20">
+                    <button
+                      type="submit"
+                      className="px-12 py-5 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-foreground transition-all shadow-xl shadow-primary/20"
+                    >
                       Sync Updates
                     </button>
                   </form>

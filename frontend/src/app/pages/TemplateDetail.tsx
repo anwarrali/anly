@@ -317,7 +317,7 @@ export default function TemplateDetail() {
                   </button>
 
                   <Link
-                    to={`/order?templateId=${template._id || template.id}&type=template_purchase`}
+                    to={`/order?type=direct_purchase&templateId=${template._id || template.id}`}
                     className="flex flex-col items-center justify-center w-full py-6 bg-primary text-primary-foreground rounded-2xl hover:shadow-2xl hover:shadow-primary/30 hover:scale-[1.02] transition-all duration-300 group"
                   >
                     <div className="flex items-center gap-3 font-black text-xs uppercase tracking-[0.2em]">
@@ -330,7 +330,7 @@ export default function TemplateDetail() {
                   </Link>
 
                   <Link
-                    to={`/order?templateId=${template._id || template.id}&type=template_modification`}
+                    to={`/order?type=customization&templateId=${template._id || template.id}`}
                     className="flex flex-col items-center justify-center w-full py-5 bg-muted border border-border text-foreground rounded-2xl hover:border-primary/30 hover:bg-card transition-all duration-300"
                   >
                     <div className="font-black text-xs uppercase tracking-[0.2em]">
@@ -341,6 +341,7 @@ export default function TemplateDetail() {
                     </span>
                   </Link>
                 </div>
+
 
                 {/* Specs List */}
                 <div className="space-y-6 pt-10 border-t border-border">

@@ -15,6 +15,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
+import { sendEmailRequest } from "../../utils/emailService";
 import { useI18n } from "../../i18n";
 
 export default function Contact() {
@@ -37,15 +38,13 @@ export default function Contact() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      // 1. Send to FormSubmit (original behavior)
-      await fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          _subject: `SeeV New Inquiry: ${data.subject}`,
-          _captcha: "false",
-        }),
+      // 1. Send via Global Email Service
+      await sendEmailRequest({
+        subject: `SeeV New Inquiry: ${data.subject}`,
+        serviceType: "General Contact Inquiry",
+        customerName: data.name as string,
+        email: data.email as string,
+        description: data.message as string,
       });
 
       // 2. Save to Supabase contacts table

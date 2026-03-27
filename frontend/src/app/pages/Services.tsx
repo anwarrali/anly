@@ -133,7 +133,7 @@ export default function Services() {
                     </div>
 
                     <Link 
-                      to={`/order?service=${activeService}&plan=${plan.id}&templateId=${searchParams.get("templateId") || ""}`}
+                      to={`/order?service=${activeService}&plan=${plan.id}${searchParams.get("templateId") ? `&templateId=${searchParams.get("templateId")}` : ""}`}
                       className={`w-full flex items-center justify-center py-5 text-[10px] font-black uppercase tracking-[0.2em] transition-all rounded-2xl ${
                         plan.popular ? "bg-accent text-black shadow-lg" : "bg-foreground text-background"
                       }`}

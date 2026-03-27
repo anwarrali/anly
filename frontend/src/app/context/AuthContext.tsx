@@ -32,55 +32,96 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/**
+ * Fetch the user's role from the `profiles` table.
+ * Falls back to auth metadata if profiles table doesn't exist or has no row.
+ */
+async function fetchProfileRole(userId: string, fallbackRole: string): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (!error && data?.role) {
+      console.log("[Auth] Role from profiles table:", data.role);
+      return data.role;
+    }
+  } catch (err) {
+    // profiles table may not exist — fall through to metadata
+    console.log("[Auth] Could not read profiles table, using metadata role");
+  }
+  return fallbackRole;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const mapUser = (supabaseUser: any): User => {
-    // Priority: user_metadata.role > app_metadata.role > 'client'
-    const role = supabaseUser.user_metadata?.role || supabaseUser.app_metadata?.role || 'client';
-    
-    // Debug log to help see what role is being detected
-    console.log("Supabase Auth Metadata Debug:", {
+  const mapUser = async (supabaseUser: any): Promise<User> => {
+    // 1. Get role from auth metadata as default
+    const metadataRole = supabaseUser.user_metadata?.role
+      || supabaseUser.app_metadata?.role
+      || "client";
+
+    // 2. Try to get role from profiles table (source of truth)
+    const dbRole = await fetchProfileRole(supabaseUser.id, metadataRole);
+
+    console.log("[Auth] User Debug:", {
       id: supabaseUser.id,
-      user_metadata: supabaseUser.user_metadata,
-      app_metadata: supabaseUser.app_metadata,
-      final_role: role
+      email: supabaseUser.email,
+      metadata_role: metadataRole,
+      db_role: dbRole,
+      final_role: dbRole,
     });
 
     return {
       id: supabaseUser.id,
-      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || 'User',
-      email: supabaseUser.email || '',
-      role: (role?.toLowerCase() === 'admin') ? 'admin' : 'client',
+      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || "User",
+      email: supabaseUser.email || "",
+      role: (dbRole?.toLowerCase() === "admin") ? "admin" : "client",
       avatar_url: supabaseUser.user_metadata?.avatar_url,
       email_confirmed_at: supabaseUser.email_confirmed_at
     };
   };
 
-
-
   const refreshUser = useCallback(async () => {
     const { data: { user: sbUser } } = await supabase.auth.getUser();
     if (sbUser) {
-      setUser(mapUser(sbUser));
+      const mapped = await mapUser(sbUser);
+      setUser(mapped);
     }
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setToken(session.access_token);
-        setUser(mapUser(session.user));
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setToken(session.access_token);
+          const mapped = await mapUser(session.user);
+          setUser(mapped);
+        }
+      } catch (err) {
+        console.error("[Auth] Initialization error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setToken(session?.access_token || null);
       if (session && session.user) {
-        setUser(mapUser(session.user));
+        try {
+          const mapped = await mapUser(session.user);
+          setUser(mapped);
+        } catch (err) {
+          console.error("[Auth] onAuthStateChange update error:", err);
+        }
       } else {
         setUser(null);
       }
@@ -93,18 +134,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     if (!data.user) throw new Error("Login failed");
-    
-    return mapUser(data.user);
+
+    return await mapUser(data.user);
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: window.location.origin,
         queryParams: {
-          access_type: 'offline',
-          prompt: 'select_account',
+          access_type: "offline",
+          prompt: "select_account",
         },
       }
     });
@@ -113,18 +154,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (name: string, email: string, password: string) => {
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
+      const { data, error } = await supabase.auth.signUp({
+        email,
         password,
         options: {
-          data: { name, role: 'client' },
-          emailRedirectTo: window.location.origin + '/login'
+          data: { name, role: "client" },
+          emailRedirectTo: window.location.origin + "/login"
         }
       });
       if (error) throw error;
       if (!data.user) throw new Error("Registration failed");
-      
-      return mapUser(data.user);
+
+      return await mapUser(data.user);
     },
     [],
   );
