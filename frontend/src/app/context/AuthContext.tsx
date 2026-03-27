@@ -9,11 +9,12 @@ import {
 import supabase from "../../utils/supabase";
 
 interface User {
-  id: string; // Changed from _id to id for PostgreSQL/Supabase consistency
+  id: string;
   name: string;
   email: string;
   role: "client" | "admin";
   avatar_url?: string;
+  email_confirmed_at?: string;
 }
 
 interface AuthContextType {
@@ -21,9 +22,12 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isEmailVerified: boolean;
   login: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,16 +37,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const mapUser = (supabaseUser: any): User => {
+    // Priority: user_metadata.role > app_metadata.role > 'client'
+    const role = supabaseUser.user_metadata?.role || supabaseUser.app_metadata?.role || 'client';
+    
+    // Debug log to help see what role is being detected
+    console.log("Supabase Auth Metadata Debug:", {
+      id: supabaseUser.id,
+      user_metadata: supabaseUser.user_metadata,
+      app_metadata: supabaseUser.app_metadata,
+      final_role: role
+    });
+
+    return {
+      id: supabaseUser.id,
+      name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || 'User',
+      email: supabaseUser.email || '',
+      role: (role?.toLowerCase() === 'admin') ? 'admin' : 'client',
+      avatar_url: supabaseUser.user_metadata?.avatar_url,
+      email_confirmed_at: supabaseUser.email_confirmed_at
+    };
+  };
+
+
+
+  const refreshUser = useCallback(async () => {
+    const { data: { user: sbUser } } = await supabase.auth.getUser();
+    if (sbUser) {
+      setUser(mapUser(sbUser));
+    }
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setToken(session.access_token);
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata?.name || 'User',
-          email: session.user.email || '',
-          role: session.user.user_metadata?.role || 'client'
-        });
+        setUser(mapUser(session.user));
       }
       setLoading(false);
     });
@@ -50,12 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setToken(session?.access_token || null);
       if (session && session.user) {
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata?.name || 'User',
-          email: session.user.email || '',
-          role: session.user.user_metadata?.role || 'client'
-        });
+        setUser(mapUser(session.user));
       } else {
         setUser(null);
       }
@@ -69,13 +94,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
     if (!data.user) throw new Error("Login failed");
     
-    const u: User = {
-      id: data.user.id,
-      name: data.user.user_metadata?.name || 'User',
-      email: data.user.email || '',
-      role: data.user.user_metadata?.role || 'client'
-    };
-    return u;
+    return mapUser(data.user);
+  }, []);
+
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'select_account',
+        },
+      }
+    });
+    if (error) throw error;
   }, []);
 
   const register = useCallback(
@@ -84,19 +117,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email, 
         password,
         options: {
-          data: { name, role: 'client' }
+          data: { name, role: 'client' },
+          emailRedirectTo: window.location.origin + '/login'
         }
       });
       if (error) throw error;
       if (!data.user) throw new Error("Registration failed");
       
-      const u: User = {
-        id: data.user.id,
-        name: data.user.user_metadata?.name || name,
-        email: data.user.email || email,
-        role: 'client'
-      };
-      return u;
+      return mapUser(data.user);
     },
     [],
   );
@@ -115,9 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!token,
         isAdmin: user?.role === "admin",
+        isEmailVerified: !!user?.email_confirmed_at,
         login,
+        signInWithGoogle,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}
@@ -130,3 +161,4 @@ export const useAuth = (): AuthContextType => {
   if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
   return ctx;
 };
+

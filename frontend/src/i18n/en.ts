@@ -465,10 +465,11 @@ export const en = {
       disconnect: "Disconnect",
     },
     overview: {
-      statusReport: "Operational Overview & Status Report",
-      activeDeployments: "Active Deployments",
-      viewAll: "View All",
-      noActive: "No active deployments identified.",
+      statusReport: "Nexus Status Report",
+      activeDeployments: "Active Mission Deployments",
+      recentMails: "Communication Logs",
+      viewAll: "Access All",
+      noActive: "No active missions in current sector.",
     },
     stats: {
       totalOrders: "Total Orders",
@@ -688,9 +689,11 @@ export const en = {
     nameLabel: "Full Name",
     loginButton: "Sign In",
     registerButton: "Create Account",
+    or: "Or continue with",
+    continueGoogle: "Continue with Google",
     noAccount: "Don't have an account?",
     hasAccount: "Already have an account?",
-    initializing: "Initializing...",
+    initializing: "Synchronizing Data...",
     verifying: "Verifying...",
     strength: {
       weak: "Weak",

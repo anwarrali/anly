@@ -209,6 +209,28 @@ export default function Order() {
             {t.order.title} <span className="text-primary italic">{t.order.titleHighlight}</span>
           </h1>
         </div>
+        {/* Step 1: Service Selection */}
+        {step === 1 && (
+          <div data-aos="fade-up" className="grid md:grid-cols-3 gap-8">
+            {[
+              { id: 'template_purchase', label: t.order.labels.directPurchase, icon: ShoppingCart, color: 'blue', desc: 'Get a professional template instantly.' },
+              { id: 'customization', label: t.order.labels.templateCustomization, icon: Settings, color: 'orange', desc: 'We customize a template for your brand.' },
+              { id: 'custom_build', label: t.order.labels.customBuild, icon: Cpu, color: 'primary', desc: 'Full custom solution from scratch.' }
+            ].map(service => (
+              <button
+                key={service.id}
+                onClick={() => { setForm({ ...form, serviceType: service.id }); setStep(2); }}
+                className="p-10 rounded-[3rem] bg-card border border-border hover:border-primary/50 hover:shadow-2xl transition-all text-center group"
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-muted group-hover:bg-primary group-hover:text-primary-foreground flex items-center justify-center mx-auto mb-8 transition-colors`}>
+                  <service.icon size={32} />
+                </div>
+                <h3 className="text-xl font-black uppercase tracking-tight mb-3 group-hover:text-primary transition-colors">{service.label}</h3>
+                <p className="text-xs text-muted-foreground font-medium">{service.desc}</p>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Step 2: Information Intake */}
         {step === 2 && (

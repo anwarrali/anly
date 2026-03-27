@@ -12,10 +12,15 @@ interface Props {
 }
 
 export default function ProtectedRoute({ requireAdmin = false }: Props) {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, isEmailVerified } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!isEmailVerified) {
+    // Optionally redirect to a 'verify-email' page, but for now /login with an error message
+    return <Navigate to="/login" state={{ error: "Please verify your email." }} replace />;
   }
 
   if (requireAdmin && !isAdmin) {
@@ -24,3 +29,4 @@ export default function ProtectedRoute({ requireAdmin = false }: Props) {
 
   return <Outlet />;
 }
+

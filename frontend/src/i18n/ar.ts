@@ -458,10 +458,11 @@ export const ar: Translations = {
       disconnect: "تسجيل الخروج",
     },
     overview: {
-      statusReport: "نظرة عامة تشغيلية وتقرير الحالة",
-      activeDeployments: "المشاريع النشطة",
+      statusReport: "تقرير حالة الاتصال",
+      activeDeployments: "المهام النشطة",
+      recentMails: "سجل المراسلات",
       viewAll: "عرض الكل",
-      noActive: "لم يتم تحديد أي مشاريع نشطة.",
+      noActive: "لا توجد مهام نشطة في القطاع الحالي.",
     },
     stats: {
       totalOrders: "إجمالي الطلبات",
@@ -687,6 +688,8 @@ export const ar: Translations = {
     nameLabel: "الاسم الكامل",
     loginButton: "تسجيل الدخول",
     registerButton: "إنشاء حساب",
+    or: "أو المتابعة باستخدام",
+    continueGoogle: "المتابعة باستخدام جوجل",
     noAccount: "ليس لديك حساب؟",
     hasAccount: "لديك حساب بالفعل؟",
     initializing: "جاري التهيئة...",

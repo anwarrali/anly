@@ -23,6 +23,7 @@ import {
   Download,
   AlertCircle,
   Zap,
+  Mail,
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 
@@ -43,37 +44,37 @@ export default function Dashboard() {
   const { t, lang } = useI18n();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [contacts, setContacts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "orders" | "settings">(
     "overview"
   );
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       if (!user?.id) return;
-      const { data, error: fetchError } = await supabase
-        .from('orders')
-        .select(`*`)
-        .eq('user_id', user.id);
       
-      if (fetchError) throw fetchError;
-      setOrders(Array.isArray(data) ? data : []);
+      const [ordersRes, contactsRes] = await Promise.all([
+        supabase.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('contacts').select('*').eq('email', user.email).order('created_at', { ascending: false })
+      ]);
+      
+      setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
+      setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
     } catch (err: any) {
       console.error("Dashboard error:", err);
-      setError(
-        err.message ||
-          "Failed to retrieve operational data from the nexus."
-      );
+      setError(err.message || "Failed to retrieve data.");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [user?.id]);
+
 
   const handleLogout = async () => {
     await logout();
@@ -160,11 +161,12 @@ export default function Dashboard() {
 
               <div className="mt-8 pt-8 border-t border-border">
                 <Link
-                  to="/order"
+                  to="/templates"
                   className="w-full flex items-center justify-center gap-3 p-4 bg-muted hover:bg-primary hover:text-primary-foreground text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl transition-all mb-3 group"
                 >
                   <Plus size={16} /> {t.dashboard.sidebar.initiate}
                 </Link>
+
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center justify-center gap-3 p-4 text-red-500 hover:bg-red-500/10 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
@@ -228,35 +230,72 @@ export default function Dashboard() {
                       <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-10 backdrop-blur-md">
                         <Zap size={14} className="text-primary" /> {t.dashboard.overview.statusReport}
                       </div>
-                      <h3 className="text-5xl font-black tracking-tighter mb-8 max-w-md">
-                        {t.dashboard.overview.activeDeployments}
-                      </h3>
-                      <div className="h-1 w-24 bg-primary mb-12" />
                       
-                      <div className="space-y-4">
-                        {orders.length === 0 ? (
-                           <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
-                             {t.dashboard.overview.noActive}
-                           </p>
-                        ) : (
-                          orders.slice(0, 3).map((order) => (
-                            <div key={order._id || order.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
-                              <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
-                                  <Layers size={18} />
+                      <div className="space-y-12">
+                        {/* Orders Section */}
+                        <div>
+                          <h3 className="text-3xl font-black tracking-tighter mb-4">
+                            {t.dashboard.nav.orders}
+                          </h3>
+                          <div className="h-1 w-12 bg-primary mb-6" />
+                          <div className="space-y-3">
+                            {orders.length === 0 ? (
+                              <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
+                                {t.dashboard.overview.noActive}
+                              </p>
+                            ) : (
+                              orders.slice(0, 2).map((order) => (
+                                <div key={order._id || order.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                      <Package size={18} />
+                                    </div>
+                                    <div className="text-sm font-black uppercase tracking-widest opacity-80">
+                                      {lang === 'ar' ? (order.templateId?.titleAr || order.templateId?.title || order.serviceType) : (order.templateId?.title || order.serviceType)}
+                                    </div>
+                                  </div>
+                                  <div className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white/10 rounded-full border border-white/10">
+                                    {order.status}
+                                  </div>
                                 </div>
-                                <div className="text-sm font-black uppercase tracking-widest opacity-80">
-                                  {lang === 'ar' ? (order.templateId?.titleAr || order.templateId?.title || order.serviceType) : (order.templateId?.title || order.serviceType)}
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Recent Contact Requests Section */}
+                        <div>
+                          <h3 className="text-3xl font-black tracking-tighter mb-4">
+                            {t.dashboard.overview.recentMails || "Contact Requests"}
+                          </h3>
+                          <div className="h-1 w-12 bg-primary mb-6" />
+                          <div className="space-y-3">
+                            {contacts.length === 0 ? (
+                              <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
+                                No recent transmissions.
+                              </p>
+                            ) : (
+                              contacts.slice(0, 2).map((c: any) => (
+                                <div key={c.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary">
+                                      <Mail size={18} />
+                                    </div>
+                                    <div className="text-sm font-black uppercase tracking-widest opacity-80 line-clamp-1 max-w-[150px]">
+                                      {c.subject}
+                                    </div>
+                                  </div>
+                                  <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
+                                    {new Date(c.created_at).toLocaleDateString()}
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 bg-white/10 rounded-full border border-white/10">
-                                {order.status}
-                              </div>
-                            </div>
-                          ))
-                        )}
+                              ))
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
+
                   </div>
 
                   {/* Quick Actions */}
@@ -436,9 +475,8 @@ export default function Dashboard() {
                        <h4 className="text-[10px] font-black text-primary uppercase tracking-[0.4em] pb-2 border-b border-border">
                          {t.dashboard.settings.sync}
                        </h4>
-                       <div className="space-y-4">
+                        <div className="space-y-4">
                           {[
-                            { id: 'deployment', title: t.dashboard.settings.lifecycle.title, sub: t.dashboard.settings.lifecycle.sub },
                             { id: 'marketing', title: t.dashboard.settings.strategic.title, sub: t.dashboard.settings.strategic.sub }
                           ].map(item => (
                             <div key={item.id} className="flex items-center justify-between p-6 bg-muted/30 rounded-2xl border border-transparent hover:border-primary/10 transition-all">
@@ -446,12 +484,13 @@ export default function Dashboard() {
                                   <p className="text-sm font-black uppercase tracking-widest text-foreground">{item.title}</p>
                                   <p className="text-[10px] font-medium text-muted-foreground uppercase mt-1">{item.sub}</p>
                                </div>
-                               <button type="button" className={`w-14 h-7 rounded-full relative transition-all duration-300 ${item.id === 'deployment' ? 'bg-primary shadow-glow-primary' : 'bg-border'}`}>
-                                  <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${item.id === 'deployment' ? (lang === 'ar' ? 'right-1 translate-x-0' : 'left-8') : (lang === 'ar' ? 'right-8' : 'left-1')}`} />
+                               <button type="button" className={`w-14 h-7 rounded-full relative transition-all duration-300 ${item.id === 'marketing' ? 'bg-primary shadow-glow-primary' : 'bg-border'}`}>
+                                  <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-300 ${item.id === 'marketing' ? (lang === 'ar' ? 'right-1 translate-x-0' : 'left-8') : (lang === 'ar' ? 'right-8' : 'left-1')}`} />
                                </button>
                             </div>
                           ))}
-                       </div>
+                        </div>
+
                     </div>
 
                     <button type="submit" className="px-12 py-5 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-foreground transition-all shadow-xl shadow-primary/20">

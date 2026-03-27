@@ -927,10 +927,7 @@ export default function Admin() {
               />
             </div>
             <div className="flex items-center gap-3 self-end sm:self-auto">
-              <button className="relative p-2.5 bg-card border-border rounded-xl border border-border text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-xs font-black text-primary uppercase tracking-widest transition-colors">
-                <Bell size={18} />
-                <span className="absolute top-1.5 end-1.5 w-2 h-2 bg-red-500 rounded-full" />
-              </button>
+
               <div className="w-9 h-9 rounded-xl bg-foreground border border-border flex items-center justify-center text-white text-sm font-bold uppercase lg:hidden">
                 {user?.name?.charAt(0) || "A"}
               </div>

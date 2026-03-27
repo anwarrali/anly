@@ -16,6 +16,7 @@ export function TemplatePreview({ url, onClose, title }: TemplatePreviewProps) {
   const [error, setError] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [slowLoading, setSlowLoading] = useState(false);
+  const [isHttp, setIsHttp] = useState(false);
 
   // Refresh iframe
   const refresh = () => {
@@ -39,12 +40,32 @@ export function TemplatePreview({ url, onClose, title }: TemplatePreviewProps) {
 
   // Pre-check URL or timeout if needed, though simple onLoad usually works
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (url.startsWith("http://") && !url.includes("localhost")) {
+      setIsHttp(true);
+    } else {
+      setIsHttp(false);
+    }
+  }, [url]);
+
+  // Handle timeouts and errors
+  useEffect(() => {
+    if (!loading) return;
+
+    const slowTimer = setTimeout(() => {
+      setSlowLoading(true);
+    }, 5000);
+
+    const errorTimer = setTimeout(() => {
       if (loading) {
-        setSlowLoading(true);
+        setError(true);
+        setLoading(false);
       }
-    }, 6000);
-    return () => clearTimeout(timer);
+    }, 15000); // 15s timeout for production reliability
+
+    return () => {
+      clearTimeout(slowTimer);
+      clearTimeout(errorTimer);
+    };
   }, [loading, iframeKey]);
 
   return (
@@ -129,13 +150,23 @@ export function TemplatePreview({ url, onClose, title }: TemplatePreviewProps) {
                 </div>
               </div>
               <p className="mt-8 text-[10px] font-black text-primary uppercase tracking-[0.4em] animate-pulse">Initializing Virtual Viewport</p>
+              
+              {isHttp && (
+                <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <AlertCircle size={14} className="text-amber-500" />
+                  <p className="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-tight">
+                    Insecure Protocol (HTTP) detected. This may be blocked by your browser.
+                  </p>
+                </div>
+              )}
+
               {slowLoading && (
                 <motion.p 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 text-[9px] text-muted-foreground font-bold uppercase tracking-widest text-center max-w-[200px]"
+                  className="mt-6 text-[9px] text-muted-foreground font-bold uppercase tracking-widest text-center max-w-[240px]"
                 >
-                  Still loading? The repository may be waking up or processing heavy assets.
+                  Taking longer than usual? The demo host might be waking up or restricted by security policies.
                 </motion.p>
               )}
             </motion.div>
@@ -176,7 +207,7 @@ export function TemplatePreview({ url, onClose, title }: TemplatePreviewProps) {
               src={url}
               onLoad={handleLoad}
               className="w-full h-full border-none"
-              sandbox="allow-scripts allow-same-origin allow-popups"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"
               title={`Demo of ${title}`}
             />
           </div>

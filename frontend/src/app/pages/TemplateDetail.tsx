@@ -143,7 +143,10 @@ export default function TemplateDetail() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-10">
                 <button
-                  onClick={() => setShowPreview(true)}
+                  onClick={() => {
+                    console.log("Opening preview for URL:", demo_url);
+                    setShowPreview(true);
+                  }}
                   className="flex items-center gap-3 px-10 py-5 bg-primary text-primary-foreground text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.05] transition-all shadow-2xl"
                 >
                   <Eye size={18} />
@@ -301,7 +304,10 @@ export default function TemplateDetail() {
                 {/* Main Action Call */}
                 <div className="flex flex-col gap-4 mb-10">
                   <button
-                    onClick={() => setShowPreview(true)}
+                    onClick={() => {
+                      console.log("Opening preview for URL:", demo_url);
+                      setShowPreview(true);
+                    }}
                     className="flex items-center justify-center w-full py-5 bg-muted text-primary border border-primary/20 rounded-2xl hover:bg-card hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
                   >
                     <div className="flex items-center gap-3 font-black text-xs uppercase tracking-[0.2em]">

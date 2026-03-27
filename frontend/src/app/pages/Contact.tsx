@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import supabase from "../../utils/supabase";
+
 import {
   Mail,
   Phone,
@@ -35,7 +37,8 @@ export default function Contact() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
+      // 1. Send to FormSubmit (original behavior)
+      await fetch("https://formsubmit.co/ajax/grandtwoaar@gmail.com", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify({
@@ -45,17 +48,25 @@ export default function Contact() {
         }),
       });
 
-      if (response.ok) {
-        setStatus("success");
-        formRef.current?.reset();
-      } else {
-        throw new Error();
-      }
+      // 2. Save to Supabase contacts table
+      const { error: sbError } = await supabase.from('contacts').insert([{
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+        created_at: new Date().toISOString()
+      }]);
+
+      if (sbError) console.error("Supabase storage sync failed:", sbError);
+
+      setStatus("success");
+      formRef.current?.reset();
     } catch (err) {
       setStatus("error");
       setErrorMessage(t.contactExtra.alertFailed);
     }
   };
+
 
   const contactInfo = [
     {
