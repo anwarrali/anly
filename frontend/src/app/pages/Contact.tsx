@@ -47,16 +47,7 @@ export default function Contact() {
         description: data.message as string,
       });
 
-      // 2. Save to Supabase contacts table
-      const { error: sbError } = await supabase.from('contacts').insert([{
-        name: data.name,
-        email: data.email,
-        subject: data.subject,
-        message: data.message,
-        created_at: new Date().toISOString()
-      }]);
-
-      if (sbError) console.error("Supabase storage sync failed:", sbError);
+      // Removed Supabase DB insertion for contacts. FormSubmit handles the email delivery.
 
       setStatus("success");
       formRef.current?.reset();

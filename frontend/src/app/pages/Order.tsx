@@ -177,42 +177,7 @@ export default function Order() {
       const { data: sessionData } = await supabase.auth.getUser();
       const userId = sessionData?.user?.id;
 
-      // 1. Insert Core Order
-      const orderPayload = {
-        template_id: form.templateId || null,
-        service_type: form.serviceType,
-        amount: getTotalPrice(),
-        payment_status: isPurchase ? "paid" : "pending",
-        status: isPurchase ? "confirmed" : "pending",
-        user_id: userId || null,
-      };
-
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert([orderPayload])
-        .select()
-        .single();
-        
-      if (orderError) throw orderError;
-
-      // 2. Insert Customization Request data if applicable
-      if (!isPurchase && order) {
-        const customizationPayload = {
-          order_id: order.id,
-          business_name: form.company || form.name,
-          website_goal: form.description,
-          phone: form.phone,
-          timeline: form.timeline,
-          budget_range: form.budget,
-          color_preference: null,
-          brand_assets: null
-        };
-        const { error: customError } = await supabase
-          .from("customization_requests")
-          .insert([customizationPayload]);
-          
-        if (customError) console.error("Could not write customization request details:", customError);
-      }
+      // Removed Supabase DB insertions as requested. FormSubmit handles all notifications.
 
       // Email notification using Global Email Request System
       await sendEmailRequest({

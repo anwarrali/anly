@@ -25,38 +25,33 @@ interface EmailPayload {
 
 export const sendEmailRequest = async (payload: EmailPayload) => {
   try {
-    // We are using Web3Forms as an immediate, reliable backend API out-of-the-box.
-    // Unlike FormSubmit, it doesn't require "activation link" clicking per form.
-    // To change to the Node backend we created, simply change the URL to 'http://localhost:5000/api/send-email'
-    const WEB3FORMS_ACCESS_KEY = "8e983411-cf47-49cc-85e7-2b5d4fb1758c"; // Place your Web3forms access key here. You can get a free one at web3forms.com
+    // You requested FormSubmit.co instead of the Node backend.
+    // FormSubmit allows AJAX submissions directly without needing a separate backend server.
+    const TARGET_EMAIL = "grandtwoaar@gmail.com";
     
     // Fallback payload using the structure requested
     const body = {
-      access_key: WEB3FORMS_ACCESS_KEY,
-      subject: payload.subject,
-      from_name: `SeeV Platforms - ${payload.customerName}`,
-      to_email: "grandtwoaar@gmail.com", // Target admin inbox
+      _subject: payload.subject, // FormSubmit uses _subject to control the email subject
+      name: payload.customerName,
+      email: payload.email,
       
-      "Service Requested": payload.serviceType,
-      ...(payload.template && { "Template Selected": payload.template }),
-      ...(payload.plan && { "Tier Plan": payload.plan }),
-      ...(payload.price && { "Total Price/Quote": payload.price }),
+      // We pass the rest of the data dynamically
+      Service_Requested: payload.serviceType,
+      ...(payload.template && { Template_Selected: payload.template }),
+      ...(payload.plan && { Tier_Plan: payload.plan }),
+      ...(payload.price && { Total_Price_Quote: payload.price }),
       
-      "--- CUSTOMER DETAILS ---": "",
-      "Name": payload.customerName,
-      "Email": payload.email,
-      ...(payload.phone && { "Phone": payload.phone }),
-      ...(payload.company && { "Company": payload.company }),
+      ...(payload.phone && { Phone: payload.phone }),
+      ...(payload.company && { Company: payload.company }),
       
-      "--- PROJECT PARAMETERS ---": "",
-      ...(payload.timeline && { "Requested Timeline": payload.timeline }),
-      ...(payload.budget && { "Budget Range": payload.budget }),
-      ...(payload.description && { "Project Description": payload.description }),
-      ...(payload.requirements && { "Special Requirements": payload.requirements }),
-      ...(payload.additionalInfo && { "Additional Information": payload.additionalInfo }),
+      ...(payload.timeline && { Requested_Timeline: payload.timeline }),
+      ...(payload.budget && { Budget_Range: payload.budget }),
+      ...(payload.description && { Project_Description: payload.description }),
+      ...(payload.requirements && { Special_Requirements: payload.requirements }),
+      ...(payload.additionalInfo && { Additional_Information: payload.additionalInfo }),
     };
 
-    const res = await fetch("https://api.web3forms.com/submit", {
+    const res = await fetch(`https://formsubmit.co/ajax/${TARGET_EMAIL}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

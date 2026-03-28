@@ -1,39 +1,12 @@
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: anly_mongodb_prod
-    restart: always
-    environment:
-      - MONGO_INITDB_DATABASE=anly_db
-    volumes:
-      - mongodb_prod_data:/data/db
-
-  backend:
-    build:
-      context: ./backend
-      target: production
-    container_name: anly_backend_prod
-    restart: always
-    depends_on:
-      - mongodb
-    env_file:
-      - ./backend/.env
-    environment:
-      - MONGO_URI=${MONGO_URI}
-      - NODE_ENV=production
-
   frontend:
     build:
       context: ./frontend
       target: production
       args:
-        - VITE_API_URL=https://anly.onrender.com/api
+        - VITE_API_URL=https://anly.onrender.com/api # Not strictly needed anymore, but keeping for reference
     container_name: anly_frontend_prod
     restart: always
     ports:
       - "80:80"
-    depends_on:
-      - backend
 
-volumes:
-  mongodb_prod_data:
