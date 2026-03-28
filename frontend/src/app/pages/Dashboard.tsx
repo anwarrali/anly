@@ -125,7 +125,6 @@ export default function Dashboard() {
   return (
     <div
       className="min-h-screen bg-background pt-24 pb-12"
-      dir={lang === "ar" ? "rtl" : "ltr"}
     >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-[280px_1fr] gap-10">
@@ -337,9 +336,9 @@ export default function Dashboard() {
                                     </div>
                                   </div>
                                   <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
-                                    {new Date(
-                                      c.created_at,
-                                    ).toLocaleDateString()}
+                                    {c.created_at
+                                      ? new Date(c.created_at).toLocaleDateString()
+                                      : "---"}
                                   </div>
                                 </div>
                               ))
@@ -520,9 +519,9 @@ export default function Dashboard() {
                                 </span>
                               </td>
                               <td className="p-6 text-xs text-muted-foreground">
-                                {new Date(
-                                  order.created_at,
-                                ).toLocaleDateString()}
+                                {order.created_at
+                                  ? new Date(order.created_at).toLocaleDateString()
+                                  : "---"}
                               </td>
                               <td className="p-6 text-sm font-black text-foreground">
                                 ${order.amount}

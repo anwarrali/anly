@@ -3,8 +3,8 @@ import { I18nContext, translations, type Language } from "../../i18n";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Language>(() => {
-    const saved = localStorage.getItem("webcraft-lang");
-    return (saved as Language) || "en";
+    const saved = localStorage.getItem("webcraft-lang") as Language;
+    return (saved === "ar" || saved === "en") ? saved : "en";
   });
 
   const setLang = (newLang: Language) => {

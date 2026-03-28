@@ -64,7 +64,7 @@ export default function Home() {
   };
 
   return (
-    <div dir={lang === "ar" ? "rtl" : "ltr"} className="overflow-x-hidden bg-background text-foreground">
+    <div className="overflow-x-hidden bg-background text-foreground">
       {/* ─── HERO ─────────────────────────────────── */}
       <section className="relative min-h-[70vh] flex items-start pt-8 overflow-hidden">
         {/* Animated Background */}
@@ -364,7 +364,7 @@ export default function Home() {
                 {t.homeExtra.swipe} <ArrowRight size={14} className={lang === "ar" ? "rotate-180" : ""} />
               </div>
               <div className="flex flex-nowrap md:grid md:grid-cols-3 gap-8 md:gap-10 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory pt-10 pb-12 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide max-w-6xl mx-auto">
-                {(activePath === "custom" ? t.pricing.customBuildPlans : t.pricing.plans).map((plan, i) => (
+                {t.pricing.plans.map((plan, i) => (
                   <div
                     key={plan.id}
                     data-aos="fade-up"
@@ -422,6 +422,16 @@ export default function Home() {
                   </div>
                 ))}
               </div>
+              {activePath === "custom" && (
+                <div 
+                  data-aos="fade-up"
+                  className="mt-12 p-6 bg-accent/5 border border-accent/20 rounded-3xl text-center max-w-2xl mx-auto"
+                >
+                  <p className="text-sm font-black text-accent uppercase tracking-widest">
+                    {t.order.form.discussPrice}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

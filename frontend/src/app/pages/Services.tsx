@@ -29,6 +29,13 @@ export default function Services() {
     AOS.init({ duration: 650, once: true, easing: "ease-out-cubic" });
   }, []);
 
+  useEffect(() => {
+    // Refresh AOS whenever the active service changes to avoid layout/animation calculation stalls
+    setTimeout(() => {
+      AOS.refresh();
+    }, 100);
+  }, [activeService]);
+
   const customizationPlans = t.pricing.plans;
   const customBuildPlans = t.pricing.customBuildPlans;
 
@@ -102,12 +109,12 @@ export default function Services() {
               <div className="text-center mb-20">
                 <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4 block">{t.services.page.tieredTitle}</span>
                 <h2 className="text-4xl sm:text-5xl font-black text-foreground uppercase font-oswald tracking-tight">
-                  {activeService === "customization" ? t.services.page.customizationPlans : t.services.page.customBuildPackages}
+                  {t.services.page.customizationPlans}
                 </h2>
               </div>
 
               <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                {(activeService === "customization" ? customizationPlans : customBuildPlans).map((plan, i) => (
+                {customizationPlans.map((plan, i) => (
                   <div 
                     key={plan.id} 
                     className={`relative p-10 border transition-all duration-500 hover:-translate-y-4 rounded-[3.5rem] ${
@@ -143,6 +150,16 @@ export default function Services() {
                   </div>
                 ))}
               </div>
+              {activeService === "custom_build" && (
+                <div 
+                  data-aos="fade-up"
+                  className="mt-20 p-8 bg-accent/5 border border-accent/20 rounded-[3rem] text-center max-w-3xl mx-auto"
+                >
+                  <p className="text-lg font-black text-accent uppercase tracking-widest leading-relaxed">
+                    {t.order.form.discussPrice}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

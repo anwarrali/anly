@@ -96,10 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const initAuth = async () => {
       try {
+        console.log("[Auth] Starting initialization...");
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
+        if (session && mounted) {
           setToken(session.access_token);
           const mapped = await mapUser(session.user);
           setUser(mapped);
@@ -107,13 +110,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("[Auth] Initialization error:", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     initAuth();
 
+    // Fallback: If initAuth hangs for more than 5 seconds, force loading to false
+    const timeout = setTimeout(() => {
+      if (loading && mounted) {
+        console.warn("[Auth] Initialisation timed out, forcing loading false.");
+        setLoading(false);
+      }
+    }, 2000); // Reduced to 2s for better UX
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      
       setToken(session?.access_token || null);
       if (session && session.user) {
         try {
@@ -125,9 +138,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUser(null);
       }
+      
+      // If onAuthStateChange fires, we can also stop loading
+      setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -175,7 +195,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.location.href = "/login";
   }, []);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center pt-24 text-foreground">
+        <div className="relative w-20 h-20 mb-8">
+          <div className="absolute inset-0 border-2 border-primary/10 rounded-full" />
+          <div className="absolute inset-0 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-4 border-2 border-accent/20 rounded-full" />
+          <div className="absolute inset-4 border-2 border-accent border-b-transparent rounded-full animate-spin-slow rotate-180" />
+        </div>
+        <div className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground animate-pulse">
+          Nexus Initializing
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthContext.Provider

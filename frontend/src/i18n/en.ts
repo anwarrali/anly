@@ -1,5 +1,3 @@
-import { Badge } from "lucide-react";
-
 export const en = {
   // Navigation
   nav: {

@@ -7,6 +7,6 @@ import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 
 export default function GuestRoute() {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  const { isAuthenticated, isEmailVerified } = useAuth();
+  return (isAuthenticated && isEmailVerified) ? <Navigate to="/dashboard" replace /> : <Outlet />;
 }
