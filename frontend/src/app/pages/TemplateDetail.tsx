@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import supabase from "../../utils/supabase";
+import { getValidImageUrl } from "../../utils/imageHandler";
 import { TemplatePreview } from "../components/ui/TemplatePreview";
 import { AnimatePresence } from "motion/react";
 
@@ -83,15 +84,17 @@ export default function TemplateDetail() {
     ? (template.description_ar || template.descriptionAr || template.description) 
     : (template.description);
 
-  const previewImages = Array.isArray(template.preview_images) 
+  let previewImages = Array.isArray(template.preview_images) 
     ? template.preview_images 
     : Array.isArray(template.previewImages) 
       ? template.previewImages 
       : [template.image_url || template.image || ""];
 
+  previewImages = previewImages.map((img: string) => getValidImageUrl(img, template.category));
+
   const demo_url = template.demo_url || template.demoUrl;
 
-  if (previewImages.length === 0)
+  if (previewImages.length === 0 || !previewImages[0])
     previewImages.push("https://placehold.co/800x600?text=No+Image");
 
   return (
@@ -413,7 +416,7 @@ export default function TemplateDetail() {
                 >
                   <div className="relative aspect-[4/3] rounded-[2rem] overflow-hidden bg-muted m-2">
                     <img
-                      src={tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null)}
+                      src={getValidImageUrl(tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null), tpl.category)}
                       alt={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />

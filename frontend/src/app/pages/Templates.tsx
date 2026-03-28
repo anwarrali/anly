@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import supabase from "../../utils/supabase";
+import { getValidImageUrl } from "../../utils/imageHandler";
 import { motion } from "motion/react";
 
 type Category =
@@ -171,7 +172,7 @@ export default function Templates() {
               >
                 <div className="relative aspect-[3/4] sm:aspect-[4/3] overflow-hidden bg-background-secondary rounded-[1rem] sm:rounded-[2.5rem] m-1 sm:m-2">
                   <img 
-                    src={tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null)} 
+                    src={getValidImageUrl(tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null), tpl.category)} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                     alt={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
                   />

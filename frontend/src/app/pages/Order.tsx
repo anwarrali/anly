@@ -29,6 +29,7 @@ import {
 import { useI18n } from "../../i18n";
 import supabase from "../../utils/supabase";
 import { sendEmailRequest } from "../../utils/emailService";
+import { getValidImageUrl } from "../../utils/imageHandler";
 
 /* ───────── Types ───────── */
 type ServiceType = "direct_purchase" | "customization" | "custom_build" | "";
@@ -467,7 +468,7 @@ export default function Order() {
                           onClick={() => update("templateId", tpl.id || tpl._id)}
                           className="group rounded-2xl border border-border overflow-hidden hover:border-primary transition-all text-left"
                         >
-                          <img src={tpl.image_url || tpl.image} alt="" className="w-full aspect-[4/3] object-cover" />
+                          <img src={getValidImageUrl(tpl.image_url || tpl.image, tpl.category)} alt="" className="w-full aspect-[4/3] object-cover" />
                           <div className="p-3">
                             <div className="text-xs font-black truncate">{lang === "ar" ? (tpl.title_ar || tpl.title) : tpl.title}</div>
                             <div className="text-primary font-black text-sm">${tpl.price}</div>

@@ -55,21 +55,14 @@ export default function Dashboard() {
       setLoading(true);
       if (!user?.id) return;
 
-      const [ordersRes, contactsRes] = await Promise.all([
-        supabase
+      const ordersRes = await supabase
           .from("orders")
           .select("*")
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("contacts")
-          .select("*")
-          .eq("email", user.email)
-          .order("created_at", { ascending: false }),
-      ]);
+          .order("created_at", { ascending: false });
 
       setOrders(Array.isArray(ordersRes.data) ? ordersRes.data : []);
-      setContacts(Array.isArray(contactsRes.data) ? contactsRes.data : []);
+      setContacts([]); // Disabled contacts fetching as requested
     } catch (err: any) {
       console.error("Dashboard error:", err);
       setError(err.message || "Failed to retrieve data.");

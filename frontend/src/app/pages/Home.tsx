@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useI18n } from "../../i18n";
 import supabase from "../../utils/supabase";
+import { getValidImageUrl } from "../../utils/imageHandler";
 
 const featureIcons = [Zap, Globe, Shield, Headphones, Search, Smartphone];
 
@@ -208,7 +209,7 @@ export default function Home() {
                     {/* Image wrapper */}
                     <div className="relative aspect-[3/4] sm:aspect-[4/3] rounded-[1rem] sm:rounded-[1.5rem] overflow-hidden bg-muted m-1.5 sm:m-2">
                       <img
-                        src={tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null) || (Array.isArray(tpl.previewImages) ? tpl.previewImages[0] : null)}
+                        src={getValidImageUrl(tpl.image_url || tpl.image || (Array.isArray(tpl.preview_images) ? tpl.preview_images[0] : null) || (Array.isArray(tpl.previewImages) ? tpl.previewImages[0] : null), tpl.category)}
                         alt={lang === 'ar' ? (tpl.title_ar || tpl.name_ar || tpl.nameAr || tpl.title) : (tpl.title || tpl.name)}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
